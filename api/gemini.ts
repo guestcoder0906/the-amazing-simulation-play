@@ -42,6 +42,7 @@ function toGemini(body: any, model: string = MODEL) {
       if (b.type === 'text') { if (String(b.text || '').trim()) parts.push({ text: b.text }); }
       else if (b.type === 'image' && b.source?.data) parts.push({ inlineData: { mimeType: b.source.media_type || 'image/jpeg', data: b.source.data } });
       else if (b.type === 'audio' && b.source?.data) parts.push({ inlineData: { mimeType: b.source.media_type || 'audio/wav', data: b.source.data } });
+      else if (b.type === 'video' && b.source?.data) parts.push({ inlineData: { mimeType: b.source.media_type || 'video/webm', data: b.source.data } });
       else if (b.type === 'tool_use') {
         names[b.id] = b.name;
         const p: any = { functionCall: { name: b.name, args: b.input || {} } };

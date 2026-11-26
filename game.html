@@ -842,6 +842,12 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     } catch (e) { EARS.busy = false; }
   }, 1000);
   window.localAI.worldLevel = worldLevel;
+  window.localAI.worldStream = function () { var t = null; TAPS.forEach(function (x, ctx) { if (!t && ctx.state === 'running') t = x; }); return t ? t.out.stream : null; };
+  window.localAI.canWatch = function () { return !GEMINI_OFF && PROVIDER !== 'local' && !(window.SIM_LOCAL && !GEMINI_KEY) && Date.now() >= (GEMINI_COOLS[GEMINI] || 0) && !!window.MediaRecorder; };
+  window.localAI.watch = async function (blob, prompt) { if (!window.localAI.canWatch() || !blob || !blob.size) return null;
+    var j = await callGemini({ model: GEMINI, max_tokens: 500, messages: [{ role: 'user', content: [{ type: 'video', source: { type: 'base64', media_type: String(blob.type || 'video/webm').split(';')[0], data: await b64(blob) } }, { type: 'text', text: prompt }] }] }, null, 'look');
+    return (j.content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join(''); };
+  window.localAI.hearClip = function (blob, context) { return hearAudio(blob, context); }; /* Gemini when there is a key, else listening on this device */
   var DICTATION = null;
   /* permanent local library store (IndexedDB) used when the page has no host database: same collection/doc API */
   var LOCALDB = null;
