@@ -3067,7 +3067,7 @@ function neuralSpeak(c, text, spec, mood, key, hint, onFail) { text = speakable(
     if (show && p.length > 90 && !deadpan) sp *= 1.08; if (show && /([aeiou])\1{2,}/i.test(p)) sp *= 0.85; if (deadpan) sp = Math.min(sp, pick.pace * 0.82);
     /* showman lines swing: shouting on CAPS / !!, gravelly fry when frustrated, silky warm over-enunciation otherwise */
     const shout = show && (caps || /!!|!\?|\?!/.test(p)), fry = show && (/\b(ugh+|argh+|grr+|hmph|no no|enough|stop it|seriously|why won'?t|ruin|annoy|frustrat)/i.test(p) || /Angry|Annoyed|Frustrat|Grumpy/i.test(md));
-    const swing = show ? [1, 1.12, 0.9, 1.08, 0.94][sIdx[pi] % 5] * (ex && !cont ? 1.05 : 1) * (q && !cont ? 1.04 : 1) * (tr ? 0.95 : 1) : 1; /* sentence-to-sentence melody: no two lines on the same note */
+    const swing = show ? [1, 1.2, 0.88, 1.13, 0.92][sIdx[pi] % 5] * (ex && !cont ? 1.05 : 1) * (q && !cont ? 1.04 : 1) * (tr ? 0.95 : 1) : 1; /* sentence-to-sentence melody: no two lines on the same note */
     /* manic yelling jumps UP in pitch, deadpan sits flat; drawn-out vowels are read as a long vowel; pauses after "...", dashes and colons */
     return { p: show ? p.replace(/([aeiou])\1{2,}/gi, '$1$1') : p, k: deadpan ? k * 0.95 : show && fry ? Math.min(1.45, k * 1.28) : shout ? Math.min(1.35, k * 1.2) : k * swing, /* Caine's frustration is strained and HIGH-pitched (his description), not a low growl */ sp: shout ? sp * 1.05 : show && fry ? sp * 1.06 : sp, shout, fry, deadpan, pause: show ? (/[,;]\s*$/.test(p) ? 0 : /(…|\.\.\.|—|–|:)\s*$/.test(p) ? 0.45 : ex ? 0.18 : 0.08) : 0, cont }; });
   /* each line is RETRIED (up to 4 tries: a timeout or a busy / restarting voice model is usually momentary) before the fallback voice is used */

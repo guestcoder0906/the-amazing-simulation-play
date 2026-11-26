@@ -147,7 +147,7 @@
     /* Caine's melody, REWRITTEN per syllable (not just bent): fitted by an automatic search against his reference recording
        (melody error 3.8 semitones for the model's own reading -> 2.0): the first accented word leaps ~13 semitones, later
        accents fade, small words sit low, and "!" lines swoop up at the end */
-    if (showman) pick.melody = { acc1: 16, acc2: 13, decay: 0.7, low: 4.5, endRise: 13, keep: 0.6, decl: 1.2, dyn: 12, vary: 2.5, stretch: 1.3, squeeze: 0.85 }; /* + showman rhythm: stressed vowels drawn out, small words rushed */ /* even wider leaps, accents stay high through the line, every syllable on its own note (vary), bigger end swoops, stronger volume punches */ /* exaggerated showman melody: big leaps on every key word (later ones barely fade), small words drop low, big end swoops, and the volume punches with the accents */ /* same announcer shape, smaller leaps so the peaks never go squeaky-high */ /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
+    if (showman) pick.melody = { acc1: 19, acc2: 14, decay: 0.75, low: 3.5, endRise: 10, keep: 0.6, decl: 1.2, dyn: 14, vary: 3, stretch: 1.45, squeeze: 0.8, swoop: 1.5, zig: 0.3, finalYell: 1.0, heat: 0.5 }; /* exaggerated showman: big leaps that stay high through the line, high plateaus on key words, a YELLED last key word on exclamations, drawn-out stressed vowels, volume punches, and the tone brightening/hardening as he goes up (heat) */
     used.set(key, { spec: spec, pick: pick });
     return pick;
   }

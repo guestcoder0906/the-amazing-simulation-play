@@ -67223,9 +67223,9 @@ function textSyllables(text) {
   });
   return out;
 }
-function syllableBounds(x2, sr, f3, hop, K2) {
+function syllableBounds(x2, sr, f3, hop, K2, syl) {
   const N3 = x2.length, nF = f3.length;
-  if (K2 < 1 || nF < 4) return null;
+  if (K2 < 1 || nF < 8) return null;
   const env3 = new Float32Array(nF);
   for (let i3 = 0; i3 < nF; i3++) {
     const c3 = i3 * hop, w3 = Math.round(sr * 0.0125);
@@ -67239,72 +67239,80 @@ function syllableBounds(x2, sr, f3, hop, K2) {
   const sm2 = new Float32Array(nF);
   for (let i3 = 0; i3 < nF; i3++) {
     let s3 = 0, n2 = 0;
-    for (let k4 = i3 - 3; k4 <= i3 + 3; k4++) if (k4 >= 0 && k4 < nF) {
+    for (let k4 = i3 - 4; k4 <= i3 + 4; k4++) if (k4 >= 0 && k4 < nF) {
       s3 += env3[k4];
       n2++;
     }
     sm2[i3] = s3 / n2;
   }
-  const peaks = [];
-  const minGap = Math.round(0.06 * sr / hop);
   let gmax = 0;
   for (let i3 = 0; i3 < nF; i3++) gmax = Math.max(gmax, sm2[i3]);
-  for (let i3 = 1; i3 < nF - 1; i3++) if (f3[i3] > 0 && sm2[i3] >= sm2[i3 - 1] && sm2[i3] > sm2[i3 + 1] && sm2[i3] > gmax * 0.1) {
-    if (peaks.length && i3 - peaks[peaks.length - 1] < minGap) {
-      if (sm2[i3] > sm2[peaks[peaks.length - 1]]) peaks[peaks.length - 1] = i3;
-    } else peaks.push(i3);
-  }
-  if (peaks.length < Math.max(1, Math.ceil(K2 * 0.5))) return null;
-  const dip = (a2, b3) => {
-    let m3 = a2, mv = Infinity;
-    for (let i3 = a2; i3 <= b3; i3++) if (sm2[i3] < mv) {
-      mv = sm2[i3];
-      m3 = i3;
-    }
-    return { m: m3, mv };
-  };
-  while (peaks.length > K2) {
-    let bi = 0, bs2 = -Infinity;
-    for (let i3 = 0; i3 + 1 < peaks.length; i3++) {
-      const d3 = dip(peaks[i3], peaks[i3 + 1]).mv / Math.min(sm2[peaks[i3]], sm2[peaks[i3 + 1]]);
-      if (d3 > bs2) {
-        bs2 = d3;
-        bi = i3;
-      }
-    }
-    const keep = sm2[peaks[bi]] >= sm2[peaks[bi + 1]] ? peaks[bi] : peaks[bi + 1];
-    peaks.splice(bi, 2, keep);
-  }
+  if (!gmax) return null;
+  let s0 = 0;
+  while (s0 < nF - 1 && sm2[s0] < gmax * 0.06) s0++;
+  let e0 = nF - 1;
+  while (e0 > s0 && sm2[e0] < gmax * 0.06) e0--;
+  const span = e0 - s0 + 1, minL = Math.max(4, Math.round(0.05 * sr / hop));
+  if (span < K2 * minL * 0.6) return null;
+  const wts = [];
+  for (let k4 = 0; k4 < K2; k4++) wts.push(syl && syl[k4] && syl[k4].acc ? 1.3 : 0.9);
+  const tw = wts.reduce((a2, b3) => a2 + b3, 0);
   const bF = [0];
-  for (let i3 = 0; i3 + 1 < peaks.length; i3++) bF.push(dip(peaks[i3], peaks[i3 + 1]).m);
-  bF.push(nF);
-  while (bF.length - 1 < K2) {
-    let bi = -1, bl2 = 0;
-    for (let k4 = 0; k4 + 1 < bF.length; k4++) {
-      let v3 = 0;
-      for (let i3 = bF[k4]; i3 < bF[k4 + 1]; i3++) if (f3[i3] > 0) v3++;
-      if (v3 > bl2) {
-        bl2 = v3;
-        bi = k4;
+  let acc = 0, prev = s0;
+  for (let k4 = 0; k4 < K2 - 1; k4++) {
+    acc += wts[k4];
+    const ideal = s0 + acc / tw * span, avg = span / K2, r2 = Math.max(2, Math.round(avg * 0.4));
+    let best = Math.round(ideal), bv = Infinity;
+    for (let i3 = Math.max(prev + minL, Math.round(ideal - r2)); i3 <= Math.min(e0 - minL * (K2 - 1 - k4), Math.round(ideal + r2)); i3++) {
+      const v3 = sm2[i3] * (1 + 0.6 * Math.abs(i3 - ideal) / r2);
+      if (v3 < bv) {
+        bv = v3;
+        best = i3;
       }
     }
-    if (bi < 0 || bl2 < 6) break;
-    const a2 = bF[bi], b3 = bF[bi + 1];
-    let m3 = a2 + (b3 - a2 >> 1), mv = Infinity;
-    for (let i3 = a2 + 3; i3 < b3 - 3; i3++) if (f3[i3] > 0 && sm2[i3] < mv) {
-      mv = sm2[i3];
-      m3 = i3;
-    }
-    bF.splice(bi + 1, 0, m3);
+    best = Math.max(prev + minL, Math.min(best, e0 - minL * (K2 - 1 - k4)));
+    bF.push(best);
+    prev = best;
   }
+  bF.push(Math.min(nF, e0 + Math.round(minL / 2) + 1));
   return bF;
 }
 function speakMelody(x2, sr, text, pr) {
   const hop = Math.round(sr * 5e-3), f3 = pitchTrack(x2, sr, hop), nF = f3.length, med = median(f3) || 0;
   if (!med) return null;
+  {
+    const en2 = new Float32Array(nF);
+    for (let i3 = 0; i3 < nF; i3++) {
+      let s3 = 0;
+      const c3 = i3 * hop;
+      for (let k4 = c3; k4 < Math.min(x2.length, c3 + hop * 2); k4++) s3 += x2[k4] * x2[k4];
+      en2[i3] = s3;
+    }
+    const ve = [];
+    for (let i3 = 0; i3 < nF; i3++) if (f3[i3] > 0) ve.push(en2[i3]);
+    ve.sort((a2, b3) => a2 - b3);
+    const eRef = ve.length ? ve[ve.length >> 1] : 0;
+    const zc = (i3) => {
+      const c3 = i3 * hop;
+      let z2 = 0, n2 = 0;
+      for (let k4 = c3 + 1; k4 < Math.min(x2.length, c3 + hop * 2); k4++) {
+        n2++;
+        if (x2[k4] >= 0 !== x2[k4 - 1] >= 0) z2++;
+      }
+      return n2 ? z2 / n2 : 1;
+    };
+    for (let i3 = 0; i3 < nF; i3++) if (!(f3[i3] > 0) && en2[i3] > eRef * 0.015 && zc(i3) < 0.12) {
+      let best = 0;
+      for (let d3 = 1; d3 <= 30 && !best; d3++) {
+        if (i3 - d3 >= 0 && f3[i3 - d3] > 0 && !f3[i3 - d3].filled) best = f3[i3 - d3];
+        else if (i3 + d3 < nF && f3[i3 + d3] > 0) best = f3[i3 + d3];
+      }
+      if (best) f3[i3] = best;
+    }
+  }
   const syl = textSyllables(text), K2 = syl.length;
   if (!K2) return null;
-  const bF = syllableBounds(x2, sr, f3, hop, K2);
+  const bF = syllableBounds(x2, sr, f3, hop, K2, syl);
   if (!bF) return null;
   const Kf2 = bF.length - 1;
   const end = /\?\s*["')]*\s*$/.test(text) ? "?" : /!\s*["')]*\s*$/.test(text) ? "!" : /(\.\.\.|…)\s*$/.test(text) ? "\u2026" : /[,;:—–-]\s*$/.test(text) ? "," : ".";
@@ -67316,13 +67324,25 @@ function speakMelody(x2, sr, text, pr) {
     const vr2 = (pr.vary || 0) * ((Math.sin((k4 + 1) * 12.9898 + K2 * 78.233) * 43758.5453 % 1 + 1) % 1 * 2 - 1);
     if (s3.acc) {
       isAcc[k4] = 1;
-      tgt[k4] = vr2 + (nAcc === 0 || s3.acc === 2 ? acc1 : acc2 * Math.max(0.55, Math.pow(decay, nAcc - 1))) - dl2;
+      const zz = nAcc > 0 && s3.acc !== 2 && nAcc % 2 === 1 ? 1 - (pr.zig || 0) : 1;
+      tgt[k4] = vr2 + (nAcc === 0 || s3.acc === 2 ? acc1 : acc2 * zz * Math.max(0.55, Math.pow(decay, nAcc - 1))) - dl2;
       nAcc++;
     } else tgt[k4] = vr2 * 0.6 - low - dl2;
   }
   if (pr.cont && Kf2 > 1) {
     tgt[0] = Math.min(tgt[0], 1);
     for (let k4 = 1; k4 < Math.min(Kf2, 3); k4++) tgt[k4] = Math.min(tgt[k4], tgt[0] + 6 * k4);
+  }
+  if (end === "!" && pr.finalYell) {
+    let la2 = -1;
+    for (let k4 = Kf2 - 1; k4 >= 0; k4--) if (isAcc[k4]) {
+      la2 = k4;
+      break;
+    }
+    if (la2 > 0) {
+      const yv = acc1 * pr.finalYell;
+      for (let k4 = la2; k4 < Kf2; k4++) tgt[k4] = Math.max(tgt[k4], yv);
+    }
   }
   const L2 = Kf2 - 1;
   if (end === "!") {
@@ -67354,18 +67374,21 @@ function speakMelody(x2, sr, text, pr) {
   }
   const segOf = new Int32Array(nF);
   for (let k4 = 0; k4 < Kf2; k4++) for (let i3 = bF[k4]; i3 < bF[k4 + 1]; i3++) segOf[i3] = k4;
+  for (let i3 = bF[Kf2]; i3 < nF; i3++) segOf[i3] = Kf2 - 1;
   const center = med * (+pr.ratio || 1), glide = Math.max(1, Math.round(0.045 * sr / hop));
   const tFrame = (i3) => {
     i3 = Math.min(nF - 1, Math.max(0, i3));
-    const k4 = segOf[i3], a2 = bF[k4], b3 = bF[k4 + 1], u3 = (i3 - a2) / Math.max(1, b3 - a2);
-    let v3 = tgt[k4] + ramp[k4] * Math.pow(u3, 1.4);
+    const k4 = segOf[i3], a2 = bF[k4], b3 = bF[k4 + 1], u3 = Math.min(1, (i3 - a2) / Math.max(1, b3 - a2));
+    let v3 = tgt[k4] + ramp[k4] * Math.pow(u3, k4 === Kf2 - 1 && end === "!" ? 0.7 : 1.4);
+    const sw = +pr.swoop || 0;
+    if (sw && k4 !== Kf2 - 1) v3 += isAcc[k4] ? sw * (u3 < 0.15 ? -0.5 + u3 / 0.15 * 0.8 : u3 < 0.8 ? 0.3 : 0.3 - (u3 - 0.8) / 0.2 * 1) : -sw * 0.35 * u3;
     if (k4 > 0 && i3 - a2 < glide) {
       const pv = tgt[k4 - 1] + ramp[k4 - 1], e2 = (i3 - a2) / glide;
       v3 = pv + (v3 - pv) * e2 * e2 * (3 - 2 * e2);
     }
     const r2 = semi[i3];
     if (r2 === r2) v3 += keep * (r2 - mean[k4]);
-    return v3;
+    return Math.min(v3, acc1 + 4);
   };
   let sm2 = 0;
   const N3 = x2.length;
@@ -67393,8 +67416,28 @@ function speakMelody(x2, sr, text, pr) {
     const want = center * Math.pow(2, tFrame(Math.round(Amap2(ts2) / hop)) / 12);
     sm2 = sm2 ? sm2 * Math.pow(2, Math.max(-1, Math.min(1, 12 * Math.log2(want / sm2) * 0.35)) / 12) : want;
     const own = sr / pa2;
-    return Math.max(Math.pow(2, -7 / 12), Math.min(2.15, sm2 / own));
+    return Math.max(Math.pow(2, -7 / 12), Math.min(2, sm2 / own));
   }, mkRnd(Kf2 * 131 + N3), false, pr.tract);
+  const hb = +pr.heat || 0;
+  if (hb) {
+    const yb = y3.slice(0);
+    biquad("peak", sr, 1900, 0.8, 9 * hb)(yb);
+    biquad("peak", sr, 3300, 1, 5 * hb)(yb);
+    let rm0 = 0, rm1 = 0;
+    for (let i3 = 0; i3 < Lo; i3++) {
+      rm0 += y3[i3] * y3[i3];
+      rm1 += yb[i3] * yb[i3];
+    }
+    const nrm = Math.sqrt(rm0 / (rm1 || 1));
+    let h3 = 0;
+    const Amap4 = mkMap();
+    for (let i3 = 0; i3 < Lo; i3++) {
+      const fr2 = Math.min(nF - 1, Math.floor(Amap4(i3) / hop)), k4 = segOf[fr2];
+      const want = Math.max(0, Math.min(1, (tgt[k4] + ramp[k4] * 0.5 + low) / Math.max(1, acc1 + low)));
+      h3 += (want - h3) * 3e-3;
+      y3[i3] = y3[i3] * (1 - h3) + yb[i3] * nrm * h3;
+    }
+  }
   const dyn = +pr.dyn || 0;
   if (dyn) {
     let g3 = 1;
@@ -67543,7 +67586,7 @@ function voiceFx(x2, sr, fx, seed) {
     biquad("lowshelf", sr, 150, 0.7, -2 * eff)(y3);
     let pk1 = 0;
     for (let i3 = 0; i3 < y3.length; i3++) pk1 = Math.max(pk1, Math.abs(y3[i3]));
-    const drv = 1 + 4 * eff, n0 = pk1 || 1;
+    const drv = 1 + 1.5 * eff, n0 = pk1 || 1;
     for (let i3 = 0; i3 < y3.length; i3++) y3[i3] = Math.tanh(y3[i3] / n0 * drv) / Math.tanh(drv) * n0;
   }
   if (ra2) {
