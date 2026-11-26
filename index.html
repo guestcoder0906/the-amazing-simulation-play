@@ -39,20 +39,20 @@
   <section class="card" id="start" aria-labelledby="h-start">
     <h2 id="h-start">Play with your Claude account</h2>
     <p>Optionally log in with Claude so Caine's AI works (your limits still apply). If not, then it uses the system's Claude (global limits apply, doesn't work sometimes).</p>
-    <a class="btn primary" id="play" href="#">Play with Claude</a>
-    <button class="btn" id="local" type="button">Play on your own computer</button>
-    <button class="btn ghost" id="decline" type="button">I don't want to sign in to Claude</button>
+    <button class="btn primary" id="local" type="button">Download to play on your computer with Claude</button>
+    <a class="btn primary" id="play" href="#">Play on Claude (no downloads)</a>
+    <button class="btn ghost" id="decline" type="button">Play with the system's Claude within this website</button>
   </section>
 
   <section class="card" id="localCard" aria-labelledby="h-local" hidden>
-    <h2 id="h-local">Play on your own computer</h2>
+    <h2 id="h-local">Play on your computer with Claude</h2>
     <p>The game runs on your computer and talks to Claude through Anthropic's own Claude Code, signed in with <strong>your</strong> Claude account, so your own plan and limits apply. Nothing about your login goes to this website.</p>
-    <p>1. Install <a href="https://www.python.org/downloads/" target="_blank" rel="noopener" style="color:var(--marigold)">Python 3</a> if you don't have it.<br>
-       2. Download the game and unzip it.<br>
-       3. Open the folder and run <strong>play-local.bat</strong> (Windows) or <strong>play-local.sh</strong> (Mac / Linux).<br>
-       4. The first time, it offers to install Claude Code and opens Anthropic's sign-in page. After that the game opens in your browser.</p>
-    <a class="btn primary" href="https://github.com/guestcoder0906/the-amazing-simulation/archive/refs/heads/main.zip">Download the game (.zip)</a>
-    <button class="btn" id="backLocal" type="button">Back</button>
+    <p id="winSteps"><strong>Windows:</strong> download the file below and double-click it. That's all: the first time it downloads the game, sets up everything it needs by itself (Python if you have none, Anthropic's Claude Code) and opens Anthropic's sign-in page; after that it opens the game straight away. If Windows asks, choose <em>More info → Run anyway</em>.</p>
+    <a class="btn primary" id="winDl" href="Play-The-Amazing-Digital-Circus.bat" download>Download for Windows (one file)</a>
+    <p style="margin-top:14px"><strong>Mac / Linux:</strong> open Terminal, paste this and press Enter:</p>
+    <code id="macCmd" style="display:block;padding:10px;border-radius:8px;background:#0b141a;color:#f1e7cf;font-size:12.5px;word-break:break-all;user-select:all"></code>
+    <button class="btn" id="copyCmd" type="button">Copy the command</button>
+    <button class="btn ghost" id="backLocal" type="button">Back</button>
   </section>
 
   <section class="card" id="confirm" aria-labelledby="h-confirm" hidden>
@@ -74,6 +74,8 @@
   document.getElementById('local').onclick = function () { show(localCard); };
   document.getElementById('back').onclick = function () { show(start); };
   document.getElementById('backLocal').onclick = function () { show(start); };
+  var cmd = 'curl -fsSL ' + location.origin + '/play-mac-linux.sh | bash'; document.getElementById('macCmd').textContent = cmd;
+  document.getElementById('copyCmd').onclick = function () { var b = this; try { navigator.clipboard.writeText(cmd).then(function () { b.textContent = 'Copied!'; setTimeout(function () { b.textContent = 'Copy the command'; }, 1500); }); } catch (e) { /* select it by hand */ } };
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && (!confirmBox.hidden || !localCard.hidden)) show(start); });
 })();
 </script>
