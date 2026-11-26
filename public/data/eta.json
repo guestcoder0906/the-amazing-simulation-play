@@ -1,0 +1,16 @@
+{
+  "about": "Learned build timings shared by every player (a static file, like data/library.json). Each device starts from these and keeps learning on top. Update by pasting a device's 'Copy timings' output here.",
+  "sbx_eta_step": 45,
+  "sbx_eta_build": 110,
+  "sbx_eta_rev": 30,
+  "sbx_eta_job_char": {
+    "total": 260,
+    "steps": 5,
+    "n": 0
+  },
+  "sbx_eta_job_gen": {
+    "total": 90,
+    "steps": 3,
+    "n": 0
+  }
+}

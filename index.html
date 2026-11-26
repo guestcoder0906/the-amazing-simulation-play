@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Amazing Digital Circus</title>
+<meta name="description" content="Interactive 3D world and character sandbox. Plays on your own Claude account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0f1a22; --cream: #f1e7cf; --muted: #9db0b0; --marigold: #f2b632; --rust: #e0704a; --claude: #d97757; --line: rgba(241,231,207,.16); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--ink); color: var(--cream); font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif; overflow: hidden; }
+  /* the game: the Claude artifact, shown on its own (the embed has no claude.ai bars) */
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #000; }
+  .scrim { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(6,10,14,.72); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .scrim[hidden] { display: none; }
+  .card { width: min(460px, 100%); background: #13212b; border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px 18px; box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+  .card h1 { margin: 0 0 8px; font: 20px/1.2 Bungee, "Arial Black", sans-serif; color: var(--marigold); letter-spacing: .02em; }
+  .card p { margin: 0 0 12px; color: #d9d0bb; }
+  .card p.small { font-size: 13px; color: var(--muted); }
+  .warn { border-left: 3px solid var(--rust); padding: 8px 10px; background: rgba(224,112,74,.1); border-radius: 0 8px 8px 0; color: #f3d4c8; }
+  .btn { display: block; width: 100%; margin-top: 8px; padding: 11px 16px; border-radius: 99px; border: 1px solid var(--line); background: #1b2c37; color: var(--cream); font: 600 14px "IBM Plex Sans", system-ui, sans-serif; cursor: pointer; text-align: center; text-decoration: none; }
+  .btn:hover { border-color: var(--marigold); }
+  .btn.primary { background: var(--claude); border-color: var(--claude); color: #fff; }
+  .btn.ghost { background: none; border-color: transparent; color: var(--muted); text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--marigold); outline-offset: 2px; }
+  #stuck { position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); z-index: 5; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--line); background: rgba(15,26,34,.9); color: var(--cream); font: 600 12.5px system-ui, sans-serif; cursor: pointer; }
+  #stuck[hidden] { display: none; }
+</style>
+</head>
+<body>
+<iframe id="game" title="The Amazing Digital Circus" allow="microphone; autoplay; clipboard-read; clipboard-write; fullscreen" allowfullscreen></iframe>
+<button id="stuck" type="button" hidden>Not loading? Play without Claude</button>
+
+<div class="scrim" id="signin" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="sT">
+    <h1 id="sT">Sign in to Claude</h1>
+    <p>The game runs inside Claude, on your own Claude account. Sign in to claude.ai to play.</p>
+    <a class="btn primary" id="login" href="https://claude.ai/login" target="_blank" rel="noopener">Log in to Claude</a>
+    <button class="btn" id="reload" type="button" hidden>I've signed in: start the game</button>
+    <button class="btn ghost" id="decline" type="button">Continue without signing in</button>
+    <p class="small" id="why"></p>
+  </div>
+</div>
+
+<div class="scrim" id="confirm" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="cT">
+    <h1 id="cT">Play without Claude sign-in?</h1>
+    <p class="warn">Without signing in, the game uses the site's Claude instead, which runs on the site owner's API key. Its limits are shared by everyone playing, so it might not work.</p>
+    <a class="btn primary" href="game.html">Continue with the site's Claude</a>
+    <button class="btn" id="back" type="button">Back: sign in to Claude</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  // the published Claude artifact: paste Claude's embed link here (Share -> Embed). It must be shared as "Anyone with the link".
+  var EMBED_SRC = 'https://claude.ai/artifact/4jySABZ5DbznhGAc2EZ9Ls';
+  var game = document.getElementById('game'), signin = document.getElementById('signin'), confirmBox = document.getElementById('confirm');
+  var stuck = document.getElementById('stuck'), why = document.getElementById('why'), heard = false;
+  function show(el) { [signin, confirmBox].forEach(function (x) { x.hidden = x !== el; }); if (el) { var f = el.querySelector('a,button'); if (f) setTimeout(function () { f.focus(); }, 30); } }
+  game.src = EMBED_SRC;
+
+  // the artifact says whether the viewer's own Claude is available (sent by the game itself, no network)
+  var REASONS = { unavailable: 'Claude is not available in this view: you are probably signed out.', 'no-viewer': 'The game could not reach Claude here.', not_granted: 'Claude was not allowed for this game.', session_expired: 'Your Claude sign-in expired.', sampling_disabled: 'Claude is not available for this account.' };
+  window.addEventListener('message', function (e) {
+    var d = e.data; if (!d || d.source !== 'amazing-sim' || typeof d.claude !== 'boolean') return;
+    heard = true; stuck.hidden = true;
+    if (d.claude) { show(null); return; }
+    why.textContent = REASONS[d.reason] || '';
+    if (confirmBox.hidden) show(signin);
+  });
+  // nothing heard from the game after a while (blocked frame, very slow load): offer the other version without interrupting
+  setTimeout(function () { if (!heard) stuck.hidden = false; }, 25000);
+  stuck.onclick = function () { show(confirmBox); };
+
+  document.getElementById('login').addEventListener('click', function () { document.getElementById('reload').hidden = false; });
+  document.getElementById('reload').onclick = function () { show(null); heard = false; game.src = EMBED_SRC + (EMBED_SRC.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(); };
+  document.getElementById('decline').onclick = function () { show(confirmBox); };
+  document.getElementById('back').onclick = function () { show(signin); };
+  if (/[?&]signin=1/.test(location.search)) show(signin);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !confirmBox.hidden) show(signin); });
+})();
+</script>
+</body>
+</html>

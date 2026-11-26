@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.SIM_SYSTEM = true; /* this page plays on the site's Claude (the owner's API key); index.html plays on your own Claude */</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Amazing Digital Circus</title>
+<meta name="description" content="The Amazing Digital Circus — interactive 3D world and character sandbox." />
+<meta property="og:title" content="The Amazing Digital Circus" />
+<meta property="og:description" content="The Amazing Digital Circus — interactive 3D world and character sandbox." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+[hidden]:not([hidden=until-found i]){display:none!important}
+:root {
+  /* layout: full-bleed 3D view, one sun-bleached signage panel docked left (bottom sheet on phones) */
+  --ink: #0f1a22;
+  --panel: rgba(13, 22, 30, 0.88);
+  --cream: #f1e7cf;
+  --muted: #9db0b0;
+  --marigold: #f2b632;
+  --teal: #5cbcae;
+  --rust: #e0704a;
+  --line: rgba(241, 231, 207, 0.16);
+  --display: "Bungee", "Arial Black", Impact, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--ink); color: var(--cream); font: 14px/1.4 var(--body); overflow: hidden; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--ink); font: 18px var(--display); color: var(--marigold); letter-spacing: 0.04em; text-align: center; padding: 24px; z-index: 5; }
+#labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+#labels span { position: absolute; left: 0; top: 0; font: 500 10.5px var(--mono); color: var(--ink); background: var(--marigold); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+#labels span::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 8px; background: var(--marigold); }
+#panel { position: absolute; left: 12px; top: 12px; width: 304px; max-height: calc(100% - 24px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; flex-direction: column; }
+#panel header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px 10px; position: sticky; top: 0; background: rgba(13, 22, 30, 0.96); z-index: 1; border-radius: 10px 10px 0 0; }
+h1 { margin: 0; font: 17px/1 var(--display); color: var(--marigold); letter-spacing: 0.02em; }
+h1 small { display: block; margin-top: 5px; font: 500 11px var(--body); color: var(--muted); letter-spacing: 0.02em; }
+#panel.closed { overflow: hidden; }
+#panel.closed section, #panel.closed footer { display: none; }
+#panel.closed header { border-radius: 10px; }
+section { padding: 12px 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 9px; }
+h2 { margin: 0; font: 600 11px var(--body); letter-spacing: 0.09em; text-transform: uppercase; color: var(--teal); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+#clock { font: 500 30px/1 var(--mono); font-variant-numeric: tabular-nums; }
+#phase { font: 600 11px var(--body); color: var(--ink); background: var(--marigold); border-radius: 99px; padding: 3px 10px; }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+dt { color: var(--muted); } dd { margin: 0; }
+label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; flex: 1 1 120px; }
+label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--cream); flex: 0 0 auto; }
+input[type="range"] { width: 100%; accent-color: var(--marigold); margin: 0; height: 22px; }
+select, input[type="date"] { width: 100%; background: #16242e; color: var(--cream); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; font: 13px var(--body); }
+button { font: 600 12px var(--body); color: var(--cream); background: #1b2c37; border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; cursor: pointer; }
+button:hover { border-color: var(--marigold); }
+button[aria-pressed="true"] { background: var(--teal); color: var(--ink); }
+button.primary { background: var(--marigold); color: var(--ink); border-color: var(--marigold); padding: 10px 12px; font-size: 13px; width: 100%; }
+button.primary:disabled { opacity: 0.6; cursor: progress; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#note { margin: 0; font-size: 12px; color: var(--muted); min-height: 1.4em; }
+#note.bad { color: var(--rust); }
+p.hint { margin: 0; font-size: 12px; color: var(--muted); }
+footer { padding: 10px 14px 12px; border-top: 1px solid var(--line); font: 11px/1.5 var(--mono); color: var(--muted); }
+@media (max-width: 560px) {
+  #panel { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 54%; }
+}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","three-mesh-bvh":"https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js"}}</script>
+</head>
+<body>
+<canvas id="view" tabindex="0" aria-label="3D view of The Amazing Digital Circus"></canvas>
+<div id="labels" hidden></div>
+<div id="loading" style="display:none!important"></div>
+<style>
+#sbxLoad{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background-color:#000;background-image:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%),linear-gradient(rgba(255,255,255,.17) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.17) 1px,transparent 1px);background-size:100% 100%,44px 44px,44px 44px;background-position:center,center,center;color:#f2f2f2;font:15px/1.4 "IBM Plex Sans",system-ui,sans-serif;transition:opacity .5s ease;padding:24px}
+#sbxLoad.out{opacity:0;pointer-events:none}
+#sbxLoad .box{width:min(360px,100%);text-align:center}
+#sbxLoad h1{margin:0 0 4px;font:700 26px "Bungee","Arial Black",sans-serif;letter-spacing:.03em;color:#fff;text-shadow:0 0 18px rgba(255,40,40,.35)}
+#sbxLoad .sub{margin:0 0 20px;color:#b9b9b9;font-size:13px}
+#sbxLoad .bar{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+#sbxLoad .bar i{display:block;height:100%;width:3%;background:#ff2a2a;box-shadow:0 0 10px #ff2a2a;border-radius:99px;transition:width .35s ease}
+#sbxLoad .msg{margin-top:12px;font-size:13px;color:#cfcfcf;min-height:1.4em}
+#sbxLoad .orb{width:56px;height:56px;margin:0 auto 18px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#ff2a2a 0%,#e01010 45%,#b00000 70%,rgba(160,0,0,0) 72%);box-shadow:0 0 18px 6px rgba(255,30,30,.75),0 0 60px 18px rgba(255,0,0,.35);animation:sbxglow 1.8s ease-in-out infinite}
+@keyframes sbxglow{0%,100%{box-shadow:0 0 14px 4px rgba(255,30,30,.6),0 0 46px 12px rgba(255,0,0,.25);transform:scale(.96)}50%{box-shadow:0 0 26px 9px rgba(255,40,40,.9),0 0 80px 26px rgba(255,0,0,.45);transform:scale(1.04)}}
+@keyframes sbxf{50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){#sbxLoad .orb{animation:none}}
+</style>
+<div id="sbxLoad" role="status" aria-live="polite"><div class="box"><div class="orb"></div><h1>The Amazing Digital Circus</h1><p class="sub">Loading simulation...</p><div class="bar"><i></i></div><div class="msg"></div></div></div>
+<script>
+// before anything else loads: silence whatever an earlier session left in the browser's speech queue, and keep clearing it until
+// this session itself starts speaking (some browsers resume a leftover queue a moment after a reload)
+(function(){window.__spoke=false;function hush(){try{if(!window.__spoke&&window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}hush();var n=0,iv=setInterval(function(){hush();if(window.__spoke||++n>40)clearInterval(iv);},250);
+addEventListener('pagehide',function(){try{speechSynthesis.cancel();}catch(e){}});})();
+</script>
+<script>
+(function(){var el=document.getElementById('sbxLoad'),bar=el.querySelector('i'),msg=el.querySelector('.msg'),pct=3,done=false;
+function set(p,t){if(done)return;if(p>pct){pct=p;bar.style.width=pct+'%';}if(t)msg.textContent=t;}
+window.__loadStage=set;
+var iv=setInterval(function(){if(pct<33)set(pct+1.5);},250);
+window.__loadDone=function(){if(done)return;done=true;clearInterval(iv);bar.style.width='100%';msg.textContent='Ready';setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove();},600);},250);};
+setTimeout(function(){if(!done)msg.textContent='Still loading… this can take a little while on a slow connection.';},20000);
+window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObserver/.test(e.message))return;/* one failed step (a slow file, an optional model) is not fatal: loading carries on; only a load that has truly stalled asks for a reload */console.warn('[load] non-fatal:',e.message);var at=pct;setTimeout(function(){if(!done&&pct<=at)msg.textContent='This is taking longer than usual. If nothing changes, please reload the page.';},45000);});
+})();
+</script>
+<script>
+// ===================== LOCAL AI CLIENT (your own model on this computer, see local-ai/) =====================
+// Every AI request goes to your local AI API (default http://127.0.0.1:8000, started with start.bat / start.sh).
+// It speaks the same Messages format as before (messages, tools, tool_use / tool_result, images), so the game code
+// is unchanged. Use another address with ?ai=http://host:port (remembered in this browser).
+(function () {
+  var LOCAL_URL = 'http://127.0.0.1:8000';
+  var GIST_USER = window.LOCAL_AI_GIST_USER || 'guestcoder0906'; // GitHub account whose start.bat publishes the tunnel address
+  var OVERRIDE = (function () {
+    try {
+      var q = new URLSearchParams(location.search).get('ai');
+      if (q === 'auto') { localStorage.removeItem('sbx_local_ai_url'); return ''; }
+      if (q) { localStorage.setItem('sbx_local_ai_url', q); return q.replace(/\/+$/, ''); }
+      return (localStorage.getItem('sbx_local_ai_url') || '').replace(/\/+$/, '');
+    } catch (e) { return ''; }
+  })();
+  // access key for the public tunnel. Comes from the Vercel environment variable VITE_LOCAL_AI_KEY (filled in by Vite at
+  // build time, so every device has it), or from ?key=... opened once on a device (remembered there).
+  var BUILD_KEY = '%VITE_LOCAL_AI_KEY%';
+  if (BUILD_KEY.charAt(0) === '%') BUILD_KEY = ''; // not set on this deployment
+  var AI_KEY = (function () {
+    try {
+      var k = new URLSearchParams(location.search).get('key');
+      if (k) { localStorage.setItem('sbx_local_ai_key', k); try { var u = new URL(location.href); u.searchParams.delete('key'); history.replaceState(null, '', u.toString()); } catch (e) { /* ok */ } return k; }
+      return BUILD_KEY || localStorage.getItem('sbx_local_ai_key') || '';
+    } catch (e) { return BUILD_KEY; }
+  })();
+  var AI_URL = OVERRIDE || LOCAL_URL;
+  function hdr(extra) { var h = Object.assign({}, extra || {}); if (AI_KEY) h['x-ai-key'] = AI_KEY; return h; }
+  async function ping(u) { try { var c = new AbortController(); var tm = setTimeout(function () { c.abort(); }, 4000); var r = await fetch(u + '/health', { cache: 'no-store', headers: hdr(), signal: c.signal }); clearTimeout(tm); return r.ok; } catch (e) { return false; } }
+  async function tunnelAddress() {
+    try {
+      var r = await fetch('https://api.github.com/users/' + encodeURIComponent(GIST_USER) + '/gists?per_page=100', { cache: 'no-store' });
+      if (!r.ok) return '';
+      var list = await r.json();
+      for (var g of list) { var f = g.files && g.files['ai-url.json']; if (f && f.raw_url) { var j = await (await fetch(f.raw_url, { cache: 'no-store' })).json(); return j && j.url ? String(j.url).replace(/\/+$/, '') : ''; } }
+    } catch (e) { /* GitHub unreachable */ }
+    return '';
+  }
+  var resolving = null;
+  function resolveUrl(force) {
+    if (OVERRIDE) return Promise.resolve(OVERRIDE);
+    if (resolving && !force) return resolving;
+    resolving = (async function () {
+      var tun = await tunnelAddress();
+      if (tun && await ping(tun)) { AI_URL = tun; }
+      else if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || !tun) { AI_URL = LOCAL_URL; }
+      else { AI_URL = (await ping(LOCAL_URL)) ? LOCAL_URL : tun; }
+      window.LOCAL_AI_URL = AI_URL; return AI_URL;
+    })();
+    return resolving;
+  }
+  window.LOCAL_AI_URL = AI_URL;
+  var READY = Promise.resolve(); window.__LOCAL_READY = READY;
+  var OFFLINE_MSG = 'Your local AI is not running. Start it with start.bat (Windows) or ./start.sh (Mac/Linux) in the project folder, then try again.';
+  var b64 = function (blob) { return new Promise(function (res, rej) { var fr = new FileReader(); fr.onload = function () { res(String(fr.result).split(',')[1]); }; fr.onerror = rej; fr.readAsDataURL(blob); }); };
+  function err(code, message, text) { var e = new Error(message); e.code = code; if (text) e.text = text; return e; }
+
+  // ===================== WHICH AI ANSWERS: Claude (default) or the custom local AI (switched off for now) =====================
+  // Claude: the visitor's own API key (direct from the browser, kept only in this browser) or, without one, the site's shared
+  // key through /api/claude (CLAUDE_API_KEY on Vercel). Quick tasks (talking, moving, looking, reactions) use Claude Haiku 5.5;
+  // everything else (building, 3D modelling, coding, the builder's checks) uses Claude Opus 5.5 at the builder's effort (high by default).
+  // The local AI is still here: open the site with ?provider=local to use it again (?provider=claude to switch back).
+  var PROVIDER = (function () {
+    try {
+      var q = new URLSearchParams(location.search).get('provider');
+      if (q === 'local' || q === 'claude') localStorage.setItem('sbx_ai_provider', q);
+      return 'claude'; /* the local AI is no longer used */
+    } catch (e) { return 'claude'; }
+  })();
+  var HAIKU = 'claude-haiku-5-5', OPUS = 'claude-opus-5-5', GEMINI = 'gemini-3.5-flash-lite';
+  var HYDROGEN = 'gemini-4-hydrogen', FLASH38 = 'gemini-3.8-flash', DECIDER = 'gemini-decision-1';
+  /* fallback chains (each step is tried in order until one answers):
+     big work (default):  Claude Opus 5.5 -> Claude Haiku 5.5 -> Gemini 4 Hydrogen (medium) -> Gemini 3.8 Flash (medium) -> Gemini 3.5 Flash-Lite (medium) -> local AI
+     quick / menial work: Gemini 3.5 Flash-Lite (minimal) -> Claude Haiku 5.5 -> local AI
+     Haiku itself:        Claude Haiku 5.5 -> Gemini 3.5 Flash-Lite (minimal) -> local AI
+     yes / no questions:  Gemini Decision 1 -> Gemini 3.5 Flash-Lite (minimal) -> Claude Haiku 5.5 -> local AI */
+  var CHAINS = {};
+  CHAINS[OPUS] = [{ c: OPUS }, { c: HAIKU }, { g: HYDROGEN, t: 'medium' }, { g: FLASH38, t: 'medium' }, { g: GEMINI, t: 'medium' }]; /* no local AI: cloud models only */
+  CHAINS[HAIKU] = [{ c: HAIKU }, { g: GEMINI, t: 'minimal' }]; /* no local AI: cloud models only */
+  CHAINS[GEMINI] = [{ g: GEMINI, t: 'minimal' }, { c: HAIKU }]; /* no local AI: cloud models only */
+  var DOWN = {}; // models that answered "not available" this session are skipped
+
+  var GEMINI_COOL = 0; var GEMINI_COOLS = {}; /* per Gemini model: until when it is skipped after a quota / rate limit */ /* Gemini said 'too many requests': until then the quick chain goes straight to the next model instead of waiting */
+  var GEMINI_KEY = (function () { try { return localStorage.getItem('sbx_gemini_api_key') || ''; } catch (e) { return ''; } })(); /* your own Gemini key (key button, bottom left): the local server uses it for Gemini */
+  function gemHdr(hd) { if (GEMINI_KEY) hd['x-gemini-key'] = GEMINI_KEY; return hd; }
+  var GEMINI_OFF = false; // set when this deployment has no GEMINI_API_KEY: quick tasks then use Claude Haiku 5.5
+  var QUICK = function () { return GEMINI_OFF ? HAIKU : GEMINI; };
+  var CLAUDE_KEY = (function () { try { return localStorage.getItem('sbx_claude_api_key') || ''; } catch (e) { return ''; } })();
+  function claudeHeaders(k) { return { 'x-api-key': k, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true', 'content-type': 'application/json' }; }
+  // the game marks quick work with a "quick" model hint (idle thoughts, reactions) and big work with its builder levels;
+  // Ollo / Caine's live mind (talking, moving, looking, gestures) is quick work too: building is handed to the builder
+  function pickModel(hint, tools) {
+    hint = String(hint || '');
+    if (/quick|haiku|gemini/.test(hint)) return QUICK();
+    if (/^(local|local-max|opus|sonnet)$|opus|sonnet|builder|heavy/.test(hint)) return OPUS;
+    var names = (tools || []).map(function (t) { return t.name; });
+    if (names.indexOf('run_code') >= 0 || names.some(function (n) { return /^create_|^spawn_|^edit_/.test(n); })) return OPUS;
+    return QUICK();
+  }
+  // prompt caching: the tool list, the long first message (instructions) and the newest message are cached, so the next
+  // step of a tool loop re-reads them at a fraction of the cost and faster
+  var CC = { type: 'ephemeral' };
+  function cacheTools(tools) { return tools.map(function (t, i) { return i === tools.length - 1 ? Object.assign({}, t, { cache_control: CC }) : t; }); }
+  function markLast(m) {
+    if (!m || !Array.isArray(m.content) || !m.content.length) return m;
+    var c = m.content.slice(), k = c.length - 1;
+    while (k >= 0 && (c[k].type === 'thinking' || c[k].type === 'redacted_thinking' || (c[k].type === 'text' && !String(c[k].text || '').trim()))) k--;
+    if (k < 0) return m; c[k] = Object.assign({}, c[k], { cache_control: CC }); return { role: m.role, content: c };
+  }
+  function cacheMarks(msgs) {
+    var out = msgs.map(function (m) { if (!Array.isArray(m.content)) return m; return { role: m.role, content: m.content.map(function (b) { if (b && b.cache_control) { var x = Object.assign({}, b); delete x.cache_control; return x; } return b; }) }; });
+    if (out.length > 1) out[0] = markLast(out[0]);
+    out[out.length - 1] = markLast(out[out.length - 1]);
+    return out;
+  }
+  var keyPromptShown = false;
+  /* API USAGE: every Claude / Gemini answer reports its tokens (and what it was for: build, mind, listen, other) to the game, which works
+     out what each finished model cost (shown in Activity with Debug on) */
+  function noteUsage(j, model, purpose) { try { var u = j && j.usage; if (!u) return; var rec = { t: Date.now(), model: String((j && j.model) || model || ''), purpose: purpose || 'other', input: +u.input_tokens || 0, output: +u.output_tokens || 0, cacheWrite: +u.cache_creation_input_tokens || 0, cacheRead: +u.cache_read_input_tokens || 0, web: (u.server_tool_use && +u.server_tool_use.web_search_requests) || 0, own: !!CLAUDE_KEY }; window.dispatchEvent(new CustomEvent('sim-ai-usage', { detail: rec })); } catch (e) { /* ok */ } }
+  /* the site's Claude (owner's API key) is not working: say so, and offer playing on your own Claude account instead */
+  var sysNoteShown = false;
+  function systemNotice(why) {
+    if (sysNoteShown || !document.body) return; sysNoteShown = true;
+    var n = document.createElement('div'); n.setAttribute('role', 'alert');
+    n.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:max(12px,env(safe-area-inset-top));z-index:10002;max-width:min(560px,calc(100% - 24px));background:#fff;color:#0f1a24;border-radius:12px;padding:12px 14px;font:13.5px/1.45 "IBM Plex Sans",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;gap:10px;align-items:flex-start';
+    n.innerHTML = '<span style="flex:1"><b>The site\'s Claude doesn\'t work right now.</b> <span class="w"></span> You can still play with no limits from the site by signing in to your own Claude account.</span><a href="./?signin=1" style="background:#d97757;color:#fff;border-radius:99px;padding:6px 12px;font:600 13px system-ui;text-decoration:none;white-space:nowrap">Sign in to Claude</a><button type="button" aria-label="Dismiss" style="background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:#55636f">&times;</button>';
+    n.querySelector('.w').textContent = why ? '(' + String(why).slice(0, 160) + ')' : '';
+    n.querySelector('button').onclick = function () { n.remove(); sysNoteShown = false; };
+    document.body.appendChild(n);
+  }
+  async function callClaude(body, signal, purpose) {
+    var last = null;
+    for (var attempt = 0; attempt < 5; attempt++) {
+      var r, own = !!CLAUDE_KEY && !window.SIM_LOCAL && !window.SIM_SYSTEM; /* running on your own computer: always your Claude Code login (local/server.py), never a key */
+      /* per-attempt time limit: a request that hangs (network stall, proxy cut off) is abandoned and retried, never waited on forever */
+      var tc = new AbortController(), timedOut = false, tm = setTimeout(function () { timedOut = true; tc.abort(); }, window.SIM_LOCAL ? 1500000 : own ? 240000 : 290000);
+      var onUser = function () { tc.abort(); }; if (signal) { if (signal.aborted) tc.abort(); else signal.addEventListener('abort', onUser, { once: true }); }
+      try {
+        r = own ? await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: claudeHeaders(CLAUDE_KEY), body: JSON.stringify(body), signal: tc.signal })
+                : await fetch('/api/claude', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: tc.signal });
+      } catch (e) { clearTimeout(tm); if (signal) signal.removeEventListener('abort', onUser); if (e && e.name === 'AbortError' && !timedOut) throw e; if (timedOut) { console.warn('[claude] request took too long, retrying'); last = err('api_error', 'Claude took too long to answer'); continue; } last = err('api_error', 'Could not reach Claude: ' + (e.message || e)); await new Promise(function (res) { setTimeout(res, 1500 * Math.pow(2, attempt)); }); continue; }
+      clearTimeout(tm); if (signal) signal.removeEventListener('abort', onUser);
+      if (r.ok) { var jc = await r.json(); noteUsage(jc, body.model, purpose); return jc; }
+      var t = ''; try { t = await r.text(); } catch (e) { /* ok */ }
+      var msg = 'Claude ' + r.status + ': ' + t.slice(0, 300); try { var j = JSON.parse(t); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) { /* ok */ }
+      var noKey = r.status === 401 || r.status === 403 || (!own && (r.status === 503 || r.status === 404 || r.status === 405));
+      if (noKey && window.SIM_LOCAL) throw err('not_granted', msg); /* local: the server says what to do (sign in to Claude Code) - no key prompt */
+      if (noKey && window.SIM_SYSTEM) { systemNotice(msg); throw err('not_granted', 'The site's Claude doesn't work right now: ' + msg); }
+      if (noKey) {
+        if (!keyPromptShown) { keyPromptShown = true; promptKey(own ? 'Your Claude API key was not accepted (' + r.status + '). Check it or enter another.' : 'This site\'s shared Claude key is not available right now. Enter your own Claude API key to keep going.'); }
+        throw err('not_granted', own ? 'Your Claude API key was not accepted. Enter a valid key (the key button, bottom left).' : 'Claude is not connected yet: enter your Claude API key (the key button, bottom left).');
+      }
+      if (r.status === 429 || r.status === 529 || r.status >= 500) {
+        last = err('rate_limited', msg);
+        var ra = Number(r.headers.get('retry-after')) || 0;
+        await new Promise(function (res) { setTimeout(res, Math.min(20000, ra ? ra * 1000 : 2000 * Math.pow(2, attempt))); });
+        continue;
+      }
+      throw err('api_error', msg);
+    }
+    if (last && window.SIM_SYSTEM) { systemNotice(last.message); throw last; }
+    if (last && last.code === 'rate_limited' && !CLAUDE_KEY && !keyPromptShown && !window.SIM_LOCAL) { keyPromptShown = true; promptKey('The shared Claude key is busy (usage limit). Enter your own Claude API key for unlimited use.'); }
+    throw last;
+  }
+
+  // ---- the key prompt and "Connect to Claude"
+  async function checkKey(k) { try { var r = await fetch('https://api.anthropic.com/v1/models?limit=1', { headers: claudeHeaders(k) }); return r.ok ? '' : 'not accepted (' + r.status + ')'; } catch (e) { return 'could not reach Claude (' + (e.message || e) + ')'; } }
+  function useKey(k) { CLAUDE_KEY = k; try { if (k) localStorage.setItem('sbx_claude_api_key', k); else localStorage.removeItem('sbx_claude_api_key'); } catch (e) { /* ok */ } keyPromptShown = false; }
+  function promptKey(reason) {
+    if (document.getElementById('ckBox')) return;
+    var box = document.createElement('div'); box.id = 'ckBox';
+    box.style.cssText = 'position:fixed;inset:0;z-index:10001;display:grid;place-items:center;background:rgba(10,16,22,.55);padding:16px;font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif';
+    box.innerHTML = '<div role="dialog" aria-modal="true" aria-labelledby="ckT" style="width:min(460px,100%);background:#fff;color:#0f1a24;border-radius:14px;padding:22px 20px;box-shadow:0 16px 40px rgba(0,0,0,.35)">' +
+      '<h2 id="ckT" style="margin:0 0 6px;font:700 18px Bungee,\'Arial Black\',sans-serif">Connect Claude</h2>' +
+      '<p id="ckWhy" style="margin:0 0 12px;color:#33424f;font-size:13.5px"></p>' +
+      '<button id="ckConnect" type="button" style="width:100%;background:#d97757;color:#fff;border:0;border-radius:99px;padding:11px 16px;font:600 14px system-ui;cursor:pointer;margin-bottom:6px">Connect to Claude</button>' +
+      '<p style="margin:0 0 12px;color:#55636f;font-size:12.5px">Opens your Claude API keys page. Create a key, copy it, then come back and press <b>Paste key</b>. Your key stays in this browser only.</p>' +
+      '<div style="display:flex;gap:8px"><input id="ckIn" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." aria-label="Claude API key" style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(22,33,43,.25);background:#fff;color:#0f1a24;color-scheme:light;font:13px ui-monospace,Menlo,monospace">' +
+      '<button id="ckPaste" type="button" style="background:#eef2f5;color:#0f1a24;border:1px solid rgba(22,33,43,.2);border-radius:10px;padding:0 12px;font:600 13px system-ui;cursor:pointer">Paste key</button></div>' +
+      '<button id="ckSave" type="button" style="width:100%;margin-top:10px;background:#16212b;color:#fff;border:0;border-radius:99px;padding:10px 16px;font:600 14px system-ui;cursor:pointer">Use this key</button>' +
+      '<p id="ckMsg" style="margin:10px 0 0;font-size:13px;min-height:1.3em"></p>' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><button id="ckForget" type="button" style="background:none;border:0;color:#9a3412;text-decoration:underline;cursor:pointer;font-size:12.5px">Forget my key</button>' +
+      '<button id="ckClose" type="button" style="background:none;border:0;color:#2a5b86;text-decoration:underline;cursor:pointer;font-size:12.5px">Continue without custom key (limits apply)</button></div></div>';
+    document.documentElement.appendChild(box);
+    var q = function (id) { return box.querySelector('#' + id); }, msg = q('ckMsg'), inp = q('ckIn');
+    q('ckWhy').textContent = reason || 'Optionally enter your own Claude API key to have unlimited usage (your Claude plan and rate limits still apply). Without one, the site\'s shared key is used, with limits.';
+    if (CLAUDE_KEY) inp.value = CLAUDE_KEY;
+    q('ckConnect').onclick = function () { window.open('https://platform.claude.com/settings/keys', '_blank', 'noopener'); msg.style.color = '#2a3946'; msg.textContent = 'Create a key on that page, copy it, then press Paste key here.'; };
+    q('ckPaste').onclick = async function () { try { var t = await navigator.clipboard.readText(); var m = String(t || '').match(/sk-ant-[A-Za-z0-9_\-]{20,}/); if (m) { inp.value = m[0]; q('ckSave').click(); } else { msg.style.color = '#9a3412'; msg.textContent = 'No Claude key found on the clipboard: copy it from the keys page first, or paste it into the box.'; } } catch (e) { msg.style.color = '#9a3412'; msg.textContent = 'The browser did not allow reading the clipboard: paste the key into the box instead.'; inp.focus(); } };
+    q('ckSave').onclick = async function () {
+      var raw = String(inp.value || '').trim(), m = raw.match(/sk-ant-[A-Za-z0-9_\-]{20,}/), k = m ? m[0] : raw;
+      if (!k) { msg.style.color = '#9a3412'; msg.textContent = 'Paste a Claude API key first.'; return; }
+      msg.style.color = '#2a3946'; msg.textContent = 'Checking the key…';
+      var bad = await checkKey(k);
+      if (bad) { msg.style.color = '#9a3412'; msg.textContent = 'Key ' + bad + '.'; return; }
+      useKey(k); msg.style.color = '#166534'; msg.textContent = 'Connected to Claude.'; setTimeout(function () { box.remove(); }, 400);
+    };
+    q('ckForget').onclick = function () { useKey(''); inp.value = ''; msg.style.color = '#2a3946'; msg.textContent = 'Key removed: the shared key will be used.'; };
+    q('ckClose').onclick = function () { box.remove(); };
+    setTimeout(function () { try { inp.focus(); } catch (e) { /* ok */ } }, 30);
+  }
+  // ---- Gemini key (on your own computer): Gemini listens to audio itself; without a key, listening runs in the browser
+  function useGeminiKey(k) {
+    GEMINI_KEY = k; try { if (k) localStorage.setItem('sbx_gemini_api_key', k); else localStorage.removeItem('sbx_gemini_api_key'); } catch (e) { /* ok */ }
+    GEMINI_OFF = !k; GEMINI_COOLS = {}; GEMINI_COOL = 0; [GEMINI, HYDROGEN, FLASH38, DECIDER].forEach(function (m) { delete DOWN[m]; });
+    var b = document.getElementById('ckBtn'); if (b) b.style.borderColor = k ? '#4ade80' : 'rgba(241,231,207,.25)';
+  }
+  async function checkGeminiKey(k) {
+    try { var r = await fetch('/api/gemini-check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: k }) }); var j = await r.json().catch(function () { return {}; }); return j && j.ok ? '' : (j && j.message) || ('not accepted (' + r.status + ')'); }
+    catch (e) { return 'could not reach Gemini (' + (e.message || e) + ')'; }
+  }
+  function promptGeminiKey() {
+    if (document.getElementById('ckBox')) return;
+    var box = document.createElement('div'); box.id = 'ckBox';
+    box.style.cssText = 'position:fixed;inset:0;z-index:10001;display:grid;place-items:center;background:rgba(10,16,22,.55);padding:16px;font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif';
+    box.innerHTML = '<div role="dialog" aria-modal="true" aria-labelledby="ckT" style="width:min(460px,100%);background:#fff;color:#0f1a24;border-radius:14px;padding:22px 20px;box-shadow:0 16px 40px rgba(0,0,0,.35)">' +
+      '<h2 id="ckT" style="margin:0 0 6px;font:700 18px Bungee,\'Arial Black\',sans-serif">Connect Gemini</h2>' +
+      '<p style="margin:0 0 12px;color:#33424f;font-size:13.5px">Optional: with your own Gemini API key, Gemini listens to voice chat and game sound itself (Claude cannot hear audio). Without a key, listening runs in your browser instead. Claude keeps using your Claude Code login.</p>' +
+      '<button id="ckConnect" type="button" style="width:100%;background:#1a73e8;color:#fff;border:0;border-radius:99px;padding:11px 16px;font:600 14px system-ui;cursor:pointer;margin-bottom:6px">Get a Gemini API key</button>' +
+      '<p style="margin:0 0 12px;color:#55636f;font-size:12.5px">Opens Google AI Studio. Create a key, copy it, then press <b>Paste key</b>. The key stays in this browser and your own computer.</p>' +
+      '<div style="display:flex;gap:8px"><input id="ckIn" type="password" autocomplete="off" spellcheck="false" placeholder="AIza..." aria-label="Gemini API key" style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(22,33,43,.25);background:#fff;color:#0f1a24;color-scheme:light;font:13px ui-monospace,Menlo,monospace">' +
+      '<button id="ckPaste" type="button" style="background:#eef2f5;color:#0f1a24;border:1px solid rgba(22,33,43,.2);border-radius:10px;padding:0 12px;font:600 13px system-ui;cursor:pointer">Paste key</button></div>' +
+      '<p id="ckMsg" role="status" style="margin:10px 0 0;font-size:13px;min-height:1.3em"></p>' +
+      '<button id="ckSave" type="button" style="width:100%;margin-top:6px;background:#16212b;color:#fff;border:0;border-radius:99px;padding:10px 16px;font:600 14px system-ui;cursor:pointer">Use this key</button>' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:8px"><button id="ckForget" type="button" style="background:none;border:0;color:#9a3412;text-decoration:underline;cursor:pointer;font-size:12.5px">Forget my key</button>' +
+      '<button id="ckClose" type="button" style="background:none;border:0;color:#2a5b86;text-decoration:underline;cursor:pointer;font-size:12.5px">Close</button></div></div>';
+    document.documentElement.appendChild(box);
+    var q = function (id) { return box.querySelector('#' + id); }, msg = q('ckMsg'), inp = q('ckIn'), seq = 0;
+    var say = function (t, c) { msg.style.color = c || '#2a3946'; msg.textContent = t; };
+    say(GEMINI_KEY ? 'A working Gemini key is saved: Gemini is listening.' : 'No Gemini key: listening runs in your browser.');
+    if (GEMINI_KEY) inp.value = GEMINI_KEY;
+    /* instant check: as soon as a key is typed or pasted it is tested, and saved when it works */
+    var test = async function (save) {
+      var k = String(inp.value || '').trim(); var my = ++seq;
+      if (!k) { say('Paste a Gemini API key first.', '#9a3412'); return; }
+      say('Checking the key…');
+      var bad = await checkGeminiKey(k); if (my !== seq) return;
+      if (bad) { say('This key does not work: ' + bad, '#9a3412'); return; }
+      useGeminiKey(k); say('This key works and is saved: Gemini now listens to audio.', '#166534');
+      if (save) setTimeout(function () { box.remove(); }, 900);
+    };
+    var tmr = 0; inp.addEventListener('input', function () { clearTimeout(tmr); tmr = setTimeout(function () { test(false); }, 500); });
+    inp.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') test(true); }, true);
+    q('ckConnect').onclick = function () { window.open('https://aistudio.google.com/apikey', '_blank', 'noopener'); say('Create a key on that page, copy it, then press Paste key here.'); };
+    q('ckPaste').onclick = async function () { try { var t = await navigator.clipboard.readText(); if (String(t || '').trim()) { inp.value = String(t).trim(); test(false); } else say('The clipboard is empty: copy the key first.', '#9a3412'); } catch (e) { say('The browser did not allow reading the clipboard: paste the key into the box instead.', '#9a3412'); inp.focus(); } };
+    q('ckSave').onclick = function () { test(true); };
+    q('ckForget').onclick = function () { useGeminiKey(''); inp.value = ''; say('Key removed: listening runs in your browser.'); };
+    q('ckClose').onclick = function () { box.remove(); };
+    setTimeout(function () { try { inp.focus(); } catch (e) { /* ok */ } }, 30);
+  }
+  function geminiKeyButton() {
+    if (document.getElementById('ckBtn')) return;
+    var b = document.createElement('button'); b.id = 'ckBtn'; b.type = 'button'; b.title = 'Gemini API key (listening)'; b.setAttribute('aria-label', 'Gemini API key'); b.textContent = '🔑';
+    b.style.cssText = 'position:fixed;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));z-index:60;width:36px;height:36px;border-radius:50%;border:1px solid ' + (GEMINI_KEY ? '#4ade80' : 'rgba(241,231,207,.25)') + ';background:rgba(15,26,34,.88);color:#f1e7cf;font-size:16px;cursor:pointer';
+    b.onclick = function () { promptGeminiKey(); };
+    document.body.appendChild(b);
+  }
+  window.__openGeminiKeyModal = function () { promptGeminiKey(); };
+  window.__openClaudeKeyModal = function () { if (window.SIM_LOCAL) promptGeminiKey(); else promptKey(); };
+  // a small key button, always reachable (bottom left)
+  function keyButton() {
+    if (window.SIM_LOCAL) { geminiKeyButton(); return; }
+    if (window.SIM_SYSTEM) return; /* the site's Claude only: no key to enter (sign in to Claude on the start page instead) */ /* local: Claude uses your Claude Code login; the key button is for Gemini (listening) */
+    if (PROVIDER !== 'claude' || document.getElementById('ckBtn')) return;
+    var b = document.createElement('button'); b.id = 'ckBtn'; b.type = 'button'; b.title = 'Claude API key'; b.setAttribute('aria-label', 'Claude API key'); b.textContent = '🔑';
+    b.style.cssText = 'position:fixed;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));z-index:60;width:36px;height:36px;border-radius:50%;border:1px solid rgba(241,231,207,.25);background:rgba(15,26,34,.88);color:#f1e7cf;font-size:16px;cursor:pointer';
+    b.onclick = function () { promptKey(); };
+    document.body.appendChild(b);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', keyButton); else keyButton();
+  async function callGemini(body, signal, purpose) {
+    var last = null;
+    for (var attempt = 0; attempt < 4; attempt++) {
+      var r;
+      try { r = await fetch('/api/gemini', { method: 'POST', headers: gemHdr({ 'content-type': 'application/json' }), body: JSON.stringify(body), signal: signal }); }
+      catch (e) { if (e && e.name === 'AbortError') throw e; last = err('api_error', 'Could not reach Gemini: ' + (e.message || e)); if (attempt >= 1) throw last; await new Promise(function (res) { setTimeout(res, 600); }); continue; }
+      if (r.ok) { var jg = await r.json(); noteUsage(jg, body.model, purpose); return jg; }
+      var t = ''; try { t = await r.text(); } catch (e) { /* ok */ }
+      var msg = 'Gemini ' + r.status + ': ' + t.slice(0, 300); try { var j = JSON.parse(t); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) { /* ok */ }
+      if (r.status === 503 || r.status === 405) { GEMINI_OFF = true; throw err('gemini_off', msg); }
+      if (r.status === 410 || r.status === 404) throw err('model_unavailable', msg);
+      if (r.status === 429 || r.status === 529) { var cool = 20000; try { var mt = /retry in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(msg); if (mt && (mt[1] || mt[2] || mt[3])) cool = ((+mt[1] || 0) * 3600 + (+mt[2] || 0) * 60 + (+mt[3] || 0)) * 1000; else if (/quota|per day|billing|free.?tier/i.test(msg)) cool = 600000; } catch (e) { /* ok */ } cool = Math.min(Math.max(cool, 20000), 6 * 3600000); if (Date.now() + cool > (GEMINI_COOLS[body.model] || 0)) { GEMINI_COOLS[body.model] = Date.now() + cool; /* only THIS Gemini model waits: another one (with its own quota) is still tried */ if (cool > 60000) console.info('[gemini] this Gemini key has used up its Google quota (a limit on the key, set in Google AI Studio - raise it there, or enable billing / a higher tier). Nothing is broken: the checks use Claude Haiku meanwhile, and Gemini is tried again in about ' + Math.round(cool / 60000) + ' min.'); } window.__geminiCoolUntil = GEMINI_COOL; throw err('rate_limited', msg); } /* no waiting: the next model in the chain answers now */
+      if (r.status >= 500) { last = err('rate_limited', msg); if (attempt >= 1) throw last; await new Promise(function (res) { setTimeout(res, 600); }); continue; }
+      throw err('api_error', msg);
+    }
+    throw last;
+  }
+  function stripGsig(msgs) { return (msgs || []).map(function (m) { return !Array.isArray(m.content) ? m : Object.assign({}, m, { content: m.content.map(function (b) { if (!b || !b._gsig) return b; var c = Object.assign({}, b); delete c._gsig; return c; }) }); }); }
+  callClaude.listen = function (b, s) { return callClaude(b, s, 'listen'); }; callGemini.listen = function (b, s) { return callGemini(b, s, 'listen'); }; /* listening is its own kind of use */
+  async function call(body, signal, purpose) {
+    if (PROVIDER === 'local') return callLocal(body, signal);
+    var chain = CHAINS[body.model] || [{ c: body.model }].concat(CHAINS[OPUS].slice(1)), last = null;
+    for (var i = 0; i < chain.length; i++) {
+      var s = chain[i];
+      if (signal && signal.aborted) throw err('cancelled', 'cancelled');
+      try {
+        if (s.g) {
+          if (GEMINI_OFF || DOWN[s.g] || Date.now() < (GEMINI_COOLS[s.g] || 0)) continue;
+          var gb = { model: s.g, thinking: s.t, max_tokens: body.max_tokens, messages: body.messages }; if (body.system && s.g !== GEMINI) gb.system = body.system; /* the fast Flash-Lite gets no system prompt */
+          if (body.tools) gb.tools = body.tools.filter(function (t) { return !t.type; });
+          return await callGemini(gb, signal, purpose);
+        }
+        if (s.c) {
+          if (DOWN[s.c]) continue;
+          var cb = Object.assign({}, body, { model: s.c, messages: cacheMarks(stripGsig(body.messages)) }); delete cb.thinking; delete cb.output_config; /* no effort level is ever sent: Claude decides for itself */;
+          if (s.c !== OPUS && cb.tools) cb.tools = cb.tools.filter(function (t) { return !t.type; }); // server web search is an Opus extra
+          if (!cb.max_tokens || cb.max_tokens > (s.c === OPUS ? 16000 : 8192)) cb.max_tokens = s.c === OPUS ? 16000 : 8192;
+          return await callClaude(cb, signal, purpose);
+        }
+        if (s.l) { await resolveUrl(); if (!AI_URL) continue; return await callLocal(Object.assign({}, body, { messages: stripGsig(body.messages) }), signal); }
+      } catch (e) {
+        if (e && (e.name === 'AbortError' || e.code === 'cancelled')) throw e;
+        if (e && e.code === 'model_unavailable') DOWN[s.g || s.c] = true;
+        if (e && /credit balance is too low/i.test(String(e.message || ''))) { e.code = 'no_credit'; DOWN[OPUS] = DOWN[HAIKU] = true; } /* Claude is out of credit: skip it for the rest of this visit */
+        if (!(last && last.code === 'no_credit')) last = e; /* the reason that matters is kept for the message */ console.info('[ai] ' + (s.g || s.c || 'local AI') + ' failed (' + (e && e.message) + ') - trying the next model');
+      }
+    }
+    throw last || err('api_error', 'No AI model is available right now');
+  }
+  /* yes / no questions: Gemini Decision 1 answers with a probability (no text); then the quick chain answers in JSON */
+  async function decide(question, input, opt) {
+    opt = opt || {};
+    if (!GEMINI_OFF && !DOWN[DECIDER]) {
+      try { var r = await fetch('/api/gemini', { method: 'POST', headers: gemHdr({ 'content-type': 'application/json' }), body: JSON.stringify({ decision: { question: question, input: input || question, true_description: opt.yes, false_description: opt.no } }), signal: opt.signal });
+        if (r.ok) { var d = await r.json(); noteUsage(d, DECIDER, opt.purpose); if (typeof d.p === 'number' && isFinite(d.p)) return { yes: !!d.yes, p: d.p, confidence: d.confidence, model: DECIDER }; }
+        else if (r.status === 503) GEMINI_OFF = true; else if (r.status === 410 || r.status === 404) DOWN[DECIDER] = true;
+      } catch (e) { if (e && e.name === 'AbortError') throw e; }
+    }
+    var q = 'Answer this yes/no question about the input. Question: ' + question + (opt.yes ? '\nYes means: ' + opt.yes : '') + (opt.no ? '\nNo means: ' + opt.no : '') + '\nInput:\n' + String(input || '').slice(0, 20000) + '\nReply with ONLY JSON {"yes": true|false, "confidence": 0..1}.';
+    var j = await sample.json(q, { model: 'quick', signal: opt.signal, purpose: opt.purpose }); var y = !!(j && (j.yes === true || j.answer === 'yes'));
+    return { yes: y, p: y ? (j.confidence || 0.8) : 1 - (j && j.confidence || 0.8), confidence: (j && j.confidence) || 0.8, model: 'quick' };
+  }
+  // ---- audio listening (voice chat + live game sound): Gemini 3.5 Flash-Lite hears the clip itself
+  var HEAR_PROMPT = 'Listen to this audio clip carefully, the way a person with good ears would. Reply with ONLY one JSON object, no prose: '
+    + '{"transcript": "the exact words spoken, empty if nobody speaks", "language": "language of the speech", "emotion": "one or two words for the feeling in the voice", '
+    + '"tone": "how it is said, e.g. excited, sarcastic, whispering, shouting, questioning, joking, pleading", "energy": "low | medium | high", '
+    + '"voice": "short description of the speaker\'s voice (age, pitch, texture)", "sounds": "other sounds besides speech (music with genre, mood, instruments, tempo; laughter, effects, noise...) or empty", '
+    + '"summary": "one sentence on what is happening in this audio"}';
+  // Gemini does not take the browser's WebM recordings: decode and re-encode as 16 kHz mono WAV
+  async function toWav(blob) {
+    var ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 16000, 16000);
+    var buf = await ac.decodeAudioData(await blob.arrayBuffer());
+    var len = Math.ceil(buf.duration * 16000), oc = new OfflineAudioContext(1, Math.max(1, len), 16000), src = oc.createBufferSource();
+    src.buffer = buf; src.connect(oc.destination); src.start(); var pcm = (await oc.startRendering()).getChannelData(0);
+    { var pk = 0, sq = 0; for (var q = 0; q < pcm.length; q++) { var a = Math.abs(pcm[q]); if (a > pk) pk = a; sq += pcm[q] * pcm[q]; } var rmsA = Math.sqrt(sq / Math.max(1, pcm.length)); var gn = Math.min(16, rmsA > 1e-5 ? 0.08 / rmsA : 1, pk > 1e-5 ? 0.95 / pk : 1); if (gn > 1.05) for (var q2 = 0; q2 < pcm.length; q2++) pcm[q2] *= gn; } /* quiet speech is made clearly audible for understanding */
+    var out = new DataView(new ArrayBuffer(44 + pcm.length * 2)), w = function (o, s) { for (var i = 0; i < s.length; i++) out.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); out.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true);
+    out.setUint32(24, 16000, true); out.setUint32(28, 32000, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, pcm.length * 2, true);
+    for (var k = 0; k < pcm.length; k++) { var v = Math.max(-1, Math.min(1, pcm[k])); out.setInt16(44 + k * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
+    return new Blob([out.buffer], { type: 'audio/wav' });
+  }
+  // ---- offline listening (used only when Gemini is not available): words + sounds from the listen worker, and a full
+  // acoustic analysis of the clip itself (pitch, pitch movement, loudness, speaking rate, ending contour, pauses,
+  // breathiness, roughness, brightness, music tempo), turned into emotion / tone / energy / voice / sounds.
+  var LISTEN = { w: null, ready: null, n: 1, pend: new Map() };
+  function listenWorker() {
+    if (LISTEN.ready) return LISTEN.ready;
+    LISTEN.ready = new Promise(function (res, rej) {
+      try {
+        var w = new Worker(new URL('sim/listen-worker.js', location.href), { type: 'module' }); LISTEN.w = w;
+        w.onmessage = function (ev) { var m = ev.data || {}; if (m.type === 'ready') res(w); else if (m.type === 'heard' || m.type === 'error') { var p = LISTEN.pend.get(m.id); if (m.id === -1) { rej(new Error(m.text)); LISTEN.ready = null; } if (p) { LISTEN.pend.delete(m.id); m.type === 'heard' ? p.res(m) : p.rej(new Error(m.text)); } } };
+        w.onerror = function (e) { rej(e); LISTEN.ready = null; };
+        w.postMessage({ type: 'load', device: navigator.gpu ? 'webgpu' : 'wasm' });
+      } catch (e) { rej(e); LISTEN.ready = null; }
+    });
+    return LISTEN.ready;
+  }
+  async function toPcm16k(blob) {
+    var ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 16000, 16000);
+    var buf = await ac.decodeAudioData(await blob.arrayBuffer());
+    var len = Math.max(1, Math.ceil(buf.duration * 16000)), oc = new OfflineAudioContext(1, len, 16000), src = oc.createBufferSource();
+    src.buffer = buf; src.connect(oc.destination); src.start();
+    return (await oc.startRendering()).getChannelData(0).slice(0);
+  }
+  function acoustics(x, sr) {
+    var hop = 160, win = 640, n = Math.floor((x.length - win) / hop), f0 = [], rms = [], zcr = [], per = [];
+    for (var i = 0; i < n; i++) {
+      var o = i * hop, e = 0, z = 0;
+      for (var k = 0; k < win; k++) { e += x[o + k] * x[o + k]; if (k && (x[o + k] >= 0) !== (x[o + k - 1] >= 0)) z++; }
+      e = Math.sqrt(e / win); rms.push(e); zcr.push(z / win);
+      var best = 0, bl = 0, lo = Math.floor(sr / 450), hi = Math.floor(sr / 70);
+      if (e > 0.01) for (var lag = lo; lag <= hi; lag++) { var s = 0, e1 = 0, e0 = 0; for (var q = 0; q + lag < win; q += 2) { s += x[o + q] * x[o + q + lag]; e0 += x[o + q] * x[o + q]; e1 += x[o + q + lag] * x[o + q + lag]; } var r = s / Math.sqrt(e0 * e1 + 1e-12); if (r > best) { best = r; bl = lag; } }
+      f0.push(best > 0.55 && bl ? sr / bl : 0); per.push(best);
+    }
+    var voiced = f0.filter(function (v) { return v > 0; }), loud = rms.filter(function (v) { return v > 0.01; });
+    var med = function (a) { if (!a.length) return 0; var b = a.slice().sort(function (p, q) { return p - q; }); return b[b.length >> 1]; };
+    var semis = voiced.map(function (v) { return 12 * Math.log2(v / (med(voiced) || 1)); }), mean = semis.reduce(function (a, b) { return a + b; }, 0) / (semis.length || 1);
+    var pitchVar = Math.sqrt(semis.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / (semis.length || 1));
+    var jit = 0, jn = 0; for (var j = 1; j < f0.length; j++) if (f0[j] > 0 && f0[j - 1] > 0) { jit += Math.abs(Math.log2(f0[j] / f0[j - 1])); jn++; } jit = jn ? jit / jn * 1200 : 0; // cents between frames
+    var tail = voiced.slice(-Math.max(3, Math.floor(voiced.length * 0.15))), head = voiced.slice(0, Math.max(3, Math.floor(voiced.length * 0.6)));
+    var rise = tail.length && head.length ? med(tail) / (med(head) || 1) : 1;
+    var peaks = 0, sm = rms.map(function (v, i) { return (rms[i - 1] || v) * 0.25 + v * 0.5 + (rms[i + 1] || v) * 0.25; }), thr = med(loud) * 0.6;
+    for (var p = 1; p < sm.length - 1; p++) if (sm[p] > thr && sm[p] > sm[p - 1] && sm[p] >= sm[p + 1]) { peaks++; p += 6; }
+    var dur = x.length / sr, active = loud.length * hop / sr, pauses = 0, run = 0;
+    for (var a = 0; a < rms.length; a++) { if (rms[a] < 0.008) run++; else { if (run > 25) pauses++; run = 0; } }
+    var db = 20 * Math.log10((med(loud) || 1e-4)), peakDb = 20 * Math.log10(Math.max.apply(null, rms.concat([1e-4])));
+    var periodic = med(per.filter(function (v, i) { return rms[i] > 0.01; })), bright = med(zcr.filter(function (v, i) { return rms[i] > 0.01; }));
+    // music tempo from the loudness onsets
+    var on = []; for (var b = 1; b < rms.length; b++) on.push(Math.max(0, rms[b] - rms[b - 1]));
+    var bestLag = 0, bestR = 0; for (var L = 25; L <= 100; L++) { var r2 = 0; for (var c = 0; c + L < on.length; c++) r2 += on[c] * on[c + L]; if (r2 > bestR) { bestR = r2; bestLag = L; } }
+    return { f0: med(voiced), pitchVar: pitchVar, jitter: jit, rise: rise, syllPerSec: active > 0.3 ? peaks / active : 0, pauses: pauses, db: db, peakDb: peakDb,
+             voicedShare: voiced.length / (loud.length || 1), periodicity: periodic, brightness: bright, dur: dur, tempo: bestLag ? Math.round(60 / (bestLag * hop / sr)) : 0 };
+  }
+  function interpret(A, words, tags) {
+    var top = function (re) { return tags.filter(function (t) { return re.test(t.label) && t.score > 0.08; }); };
+    var speech = top(/^(Speech|Male speech|Female speech|Child speech|Conversation|Narration|Babbling)/).length > 0 || !!words;
+    var laugh = top(/Laugh|Giggle|Chuckle|Snicker|Belly laugh/), cry = top(/Crying|Sobbing|Whimper|Wail/), shout = top(/Shout|Yell|Screaming|Bellow/), whisper = top(/Whispering/), sing = top(/Singing|Choir|Chant|Rapping/), music = top(/Music|Song|Instrument|Guitar|Piano|Drum|Orchestra|Synthesizer|Pop|Rock|Hip hop|Jazz|Electronic|Classical|Techno|Country|Blues|Reggae|Funk|Disco|Ambient|Soundtrack|Lullaby|Carnival|Circus/);
+    var loud = A.db > -20 || A.peakDb > -6, quiet = A.db < -34, fast = A.syllPerSec > 5.2, slow = A.syllPerSec > 0 && A.syllPerSec < 3, lively = A.pitchVar > 3.2, flat = A.pitchVar < 1.6;
+    var txt = String(words || ''), excl = /!/.test(txt), q = /\?\s*$/.test(txt) || A.rise > 1.12;
+    var pos = /\b(yay|wow|awesome|amazing|love|great|haha|cool|nice|thanks|happy|fun|yes)\b/i.test(txt), neg = /\b(sad|sorry|hate|no|stop|ugh|tired|hurt|scared|help|afraid|angry|bad)\b/i.test(txt);
+    var emotion = 'calm';
+    if (laugh.length) emotion = 'amused'; else if (cry.length) emotion = 'sad (crying)';
+    else if (shout.length || (loud && A.brightness > 0.12 && flat && neg)) emotion = neg ? 'angry' : 'excited';
+    else if (loud && lively) emotion = neg ? 'alarmed' : 'excited';
+    else if (lively && pos) emotion = 'happy';
+    else if (quiet && slow) emotion = neg ? 'sad' : 'tired';
+    else if (A.jitter > 60 && neg) emotion = 'nervous';
+    else if (neg) emotion = 'upset'; else if (pos) emotion = 'cheerful';
+    var tone = whisper.length || (quiet && A.voicedShare < 0.45) ? 'whispering' : shout.length || A.peakDb > -3 ? 'shouting' : sing.length ? 'singing' : q ? 'questioning' : excl || lively ? 'emphatic' : flat ? 'matter-of-fact' : 'conversational';
+    if (/\b(just kidding|lol|haha|jk)\b/i.test(txt)) tone = 'joking';
+    var energy = (loud || fast || lively) && !quiet ? 'high' : quiet || slow ? 'low' : 'medium';
+    var pitchWord = !A.f0 ? '' : A.f0 < 140 ? 'low-pitched' : A.f0 < 200 ? 'mid-low pitched' : A.f0 < 270 ? 'mid-high pitched' : 'high-pitched';
+    var age = top(/Child speech/).length || A.f0 > 300 ? 'child-like' : top(/Female speech/).length ? 'adult (likely female)' : top(/Male speech/).length ? 'adult (likely male)' : '';
+    var texture = A.periodicity < 0.6 ? 'breathy' : A.jitter > 70 ? 'rough / shaky' : 'clear';
+    var voice = speech ? [age, pitchWord, texture, fast ? 'fast talker' : slow ? 'slow, deliberate' : ''].filter(Boolean).join(', ') : '';
+    var other = tags.filter(function (t) { return t.score > 0.1 && !/^(Speech|Male speech|Female speech|Child speech|Conversation|Narration|Inside, small room|Silence)$/.test(t.label); }).slice(0, 5).map(function (t) { return t.label.toLowerCase(); });
+    var sounds = other.join(', ');
+    if (music.length && A.tempo) sounds += (sounds ? '; ' : '') + 'music around ' + A.tempo + ' BPM' + (A.tempo > 120 ? ' (upbeat)' : A.tempo < 85 ? ' (slow)' : '');
+    var summary = speech ? 'Someone ' + (tone === 'conversational' ? 'speaks' : tone === 'singing' ? 'sings' : 'speaks, ' + tone + ',') + ' sounding ' + emotion + (sounds ? ', with ' + sounds + ' in the background' : '') + '.'
+                         : sounds ? 'No speech; you hear ' + sounds + '.' : 'Near silence.';
+    return { transcript: txt, language: speech ? 'English' : '', emotion: emotion, tone: tone, energy: energy, voice: voice, sounds: sounds, summary: summary,
+             measured: { pitch_hz: Math.round(A.f0), pitch_variation_semitones: +A.pitchVar.toFixed(1), loudness_db: +A.db.toFixed(1), syllables_per_s: +A.syllPerSec.toFixed(1), ending: A.rise > 1.12 ? 'rising' : A.rise < 0.88 ? 'falling' : 'level', pauses: A.pauses, tempo_bpm: music.length && A.tempo ? A.tempo : null },
+             heard_by: 'in-browser listening (Gemini unavailable)' };
+  }
+  async function localHear(blob, context) {
+    var pcm = await toPcm16k(blob);
+    var A = acoustics(pcm, 16000);
+    var w = await listenWorker(), id = LISTEN.n++;
+    var out = await new Promise(function (res, rej) { LISTEN.pend.set(id, { res: res, rej: rej }); w.postMessage({ type: 'listen', id: id, pcm: pcm, speech: A.voicedShare > 0.1 || A.syllPerSec > 0.5, device: navigator.gpu ? 'webgpu' : 'wasm' }, [pcm.buffer]); setTimeout(function () { if (LISTEN.pend.has(id)) { LISTEN.pend.delete(id); rej(new Error('listening timed out')); } }, 60000); });
+    var res = interpret(A, out.text, out.tags || []);
+    // best judgement: when Claude is reachable, it reads the measurements + words + sounds and settles emotion / tone
+    if (false && PROVIDER === 'claude') { /* off: Claude cannot hear audio; its "I can't hear it" replies were passed to the characters as what they heard */
+      try {
+        var r = await callClaude.listen({ model: HAIKU, max_tokens: 300, messages: [{ role: 'user', content: [{ type: 'text', text:
+          'You judge how an audio clip sounds from measurements (you cannot hear it). Reply with ONLY one JSON object with keys emotion, tone, energy, voice, sounds, summary (same meaning as in the draft). Keep what the evidence supports; correct what it contradicts.\n'
+          + (context ? 'Context: ' + context + '\n' : '') + 'Draft analysis and measurements: ' + JSON.stringify(res) + '\nTop detected sound classes: ' + JSON.stringify((out.tags || []).slice(0, 10)) }] }] });
+        var t = (r.content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join('');
+        var i = t.indexOf('{'), j = t.lastIndexOf('}'); var fix = JSON.parse(t.slice(i, j + 1));
+        ['emotion', 'tone', 'energy', 'voice', 'sounds', 'summary'].forEach(function (k) { if (fix[k]) res[k] = fix[k]; });
+        res.heard_by += ', judged by Claude Haiku 5.5';
+      } catch (e) { /* the measured analysis stands on its own */ }
+    }
+    return res;
+  }
+  window.__listen = { local: localHear, auto: function (b, c) { return hearAudio(b, c); } }; // for checking listening from the console
+  /* Google MediaPipe Audio Classifier with YAMNet (521 sound classes: speech, music, animals, effects, silence...): runs free in this
+     browser, in real time. Nothing goes to Gemini or Claude unless YAMNet hears something real first. */
+  var MP_VER = '1.2.2', YAM = { p: null, failUntil: 0 };
+  function yamnet() {
+    if (YAM.p) return YAM.p;
+    if (Date.now() < YAM.failUntil) return Promise.reject(new Error('YAMNet unavailable'));
+    YAM.p = (async function () {
+      var m = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@' + MP_VER + '/audio_bundle.mjs');
+      var fs = await m.FilesetResolver.forAudioTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@' + MP_VER + '/wasm');
+      return m.AudioClassifier.createFromOptions(fs, { baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite' }, maxResults: 6, scoreThreshold: 0.1 });
+    })().catch(function (e) { YAM.p = null; YAM.failUntil = Date.now() + 60000; console.info('[listen] YAMNet could not load (' + (e && e.message) + ')'); throw e; });
+    return YAM.p;
+  }
+  /* what YAMNet hears in a piece of audio: the strongest classes over all its ~1 s windows; heard = anything but silence */
+  async function yamDetect(pcm, sr) {
+    var c = await yamnet(); var res = c.classify(pcm, sr) || [], best = {};
+    res.forEach(function (r) { ((r.classifications && r.classifications[0] && r.classifications[0].categories) || []).forEach(function (k) { var n = k.categoryName || k.displayName; if (n && (!(n in best) || best[n] < k.score)) best[n] = k.score; }); });
+    var cats = Object.keys(best).map(function (n) { return { label: n, score: +best[n].toFixed(3) }; }).sort(function (a, b) { return b.score - a.score; });
+    var real = cats.filter(function (k) { return k.label !== 'Silence' && k.score >= 0.2; });
+    return { heard: real.length > 0, cats: cats.slice(0, 8), real: real };
+  }
+  window.__yamnet = { detect: yamDetect, load: yamnet }; // for checking from the console
+  /* Gemini Decision 1 listens to the clip and sorts it (one call, probabilities only, no text) */
+  async function audioKind(w64, hint) {
+    var r = await fetch('/api/gemini', { method: 'POST', headers: gemHdr({ 'content-type': 'application/json' }), body: JSON.stringify({ decision: { type: 'choice', audio: w64, mime_type: 'audio/wav', input: hint || '',
+      question: 'Listen to this short audio clip from a live 3D game (the microphone or the game\'s own sound). What does it distinctly contain?',
+      options: { speech: 'Only speech: someone talking, whispering, shouting or singing words, with no other distinct sound.', other: 'Only other sound: music, sound effects, noises, ambience - no distinct speech.', both: 'Distinct speech AND distinct other sound (music, effects, noises) together.', none: 'Nothing distinct: silence, faint hum or room noise.' } } }) });
+    if (!r.ok) { if (r.status === 503) GEMINI_OFF = true; throw err('api_error', 'Gemini decision ' + r.status); }
+    var d = await r.json(); noteUsage(d, DECIDER, 'listen'); return d && d.choice ? String(d.choice) : null;
+  }
+  /* Gemini 3.5 Transcribe: the words only (speech audio) */
+  async function transcribeAudio(w64) {
+    var r = await fetch('/api/gemini-transcribe', { method: 'POST', headers: gemHdr({ 'content-type': 'application/json' }), body: JSON.stringify({ audio: w64, mime_type: 'audio/wav' }) });
+    if (!r.ok) throw err('api_error', 'Gemini Transcribe ' + r.status);
+    var d = await r.json(); return String((d && d.text) || '');
+  }
+  async function hearAudio(blob, context) {
+    var yamHint = '';
+    if (PROVIDER !== 'local') {
+      try { var yd = await yamDetect(await toPcm16k(blob), 16000); if (!yd.heard) return null; /* YAMNet: only silence -> nothing is sent */
+        yamHint = 'An on-device sound classifier (YAMNet) heard: ' + yd.real.map(function (k) { return k.label + ' ' + Math.round(k.score * 100) + '%'; }).join(', ') + '.'; }
+      catch (e) { /* YAMNet unavailable: the next step decides */ }
+    }
+    if (PROVIDER === 'local') {
+      await resolveUrl(); var r0 = await fetch(AI_URL + '/hear', { method: 'POST', headers: hdr({ 'content-type': 'application/json' }), body: JSON.stringify({ audio: await b64(blob), context: context || undefined }) });
+      setStatus(r0.ok); return r0.ok ? r0.json() : null;
+    }
+    if (GEMINI_OFF || (window.SIM_LOCAL && !GEMINI_KEY)) return localHear(blob, context); /* no Gemini key: listening in the browser */
+    var wav = await toWav(blob), res;
+    /* on your own computer with a Gemini key: Gemini Decision 1 first sorts the clip (speech / other sound / both / nothing, one cheap
+       call); nothing -> no further request; speech only -> Gemini 3.5 Transcribe (cheaper; the measured voice gives the tone);
+       other sound -> Gemini 3.5 Flash-Lite listens (and, when speech is in it too, Transcribe writes the words) */
+    if (window.SIM_LOCAL) {
+      var w64 = await b64(wav), kind = null;
+      try { kind = await audioKind(w64, yamHint); } catch (e) { if (e && e.name === 'AbortError') throw e; kind = null; }
+      if (kind === 'none') return null;
+      if (kind === 'speech') {
+        try { var words = await transcribeAudio(w64); if (!String(words || '').trim()) return null; var sp = interpret(acoustics(await toPcm16k(wav), 16000), words, []); sp.heard_by = 'Gemini 3.5 Transcribe'; return sp; }
+        catch (e) { console.info('[listen] Transcribe unavailable (' + (e && e.message) + '): Flash-Lite listens instead'); }
+      }
+      var wordsP = kind === 'both' ? transcribeAudio(w64).catch(function () { return null; }) : Promise.resolve(null);
+      var fl = null; try { fl = await callGemini.listen({ model: GEMINI, max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'audio', source: { type: 'base64', media_type: 'audio/wav', data: w64 } }, { type: 'text', text: HEAR_PROMPT + (context ? '\nContext: ' + context : '') }] }] }); }
+      catch (e) { console.info('[listen] Gemini unavailable (' + (e && e.message) + '): listening in the browser'); return localHear(blob, context); }
+      var ft = (fl.content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join('');
+      var fa = ft.indexOf('{'), fb = ft.lastIndexOf('}'), out; try { out = JSON.parse(fa >= 0 && fb > fa ? ft.slice(fa, fb + 1) : ft); } catch (e) { out = { transcript: ft.trim() }; }
+      var exact = await wordsP; if (exact && String(exact).trim()) out.transcript = String(exact).trim();
+      out.heard_by = kind === 'both' ? 'Gemini 3.5 Flash-Lite + Gemini 3.5 Transcribe' : 'Gemini 3.5 Flash-Lite'; return out;
+    }
+    try { res = await callGemini.listen({ model: GEMINI, max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'audio', source: { type: 'base64', media_type: 'audio/wav', data: await b64(wav) } }, { type: 'text', text: HEAR_PROMPT + (context ? '\nContext: ' + context : '') }] }] }); }
+    catch (e) { console.info('[listen] Gemini unavailable (' + (e && e.message) + '): listening in the browser'); return localHear(blob, context); }
+    var txt = (res.content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join('');
+    var i = txt.indexOf('{'), j = txt.lastIndexOf('}'); try { return JSON.parse(i >= 0 && j > i ? txt.slice(i, j + 1) : txt); } catch (e) { return { transcript: txt.trim() }; }
+  }
+
+  // the first request after an idle unload waits while the model loads; 529 = the GPU was busy / out of memory
+  async function callLocal(body, signal) {
+    var last = null;
+    for (var attempt = 0; attempt < 4; attempt++) {
+      var r;
+      await resolveUrl();
+      try { r = await fetch(AI_URL + '/v1/messages', { method: 'POST', headers: hdr({ 'content-type': 'application/json' }), body: JSON.stringify(body), signal: signal }); }
+      catch (e) { if (e && e.name === 'AbortError') throw e; if (attempt === 0) { await resolveUrl(true); continue; } setStatus(false); throw err('ai_offline', OFFLINE_MSG); }
+      if (r.status === 401) { setStatus(true); throw err('not_granted', 'Your local AI needs its access key: open this site once with ?key=YOUR_KEY (the link is in local-ai/DEVICE_LINK.txt on the AI computer).'); }
+      setStatus(true);
+      if (r.ok) return r.json();
+      var t = ''; try { t = await r.text(); } catch (e) { /* ok */ }
+      var msg = 'Local AI ' + r.status + ': ' + t.slice(0, 300); try { var j = JSON.parse(t); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) { /* ok */ }
+      last = err(r.status === 529 || r.status === 503 ? 'rate_limited' : 'api_error', msg);
+      if (r.status !== 529 && r.status !== 503) throw last;
+      await new Promise(function (res) { setTimeout(res, 1500 * Math.pow(2, attempt)); });
+    }
+    throw last;
+  }
+  /* every picture of one request together stays under ~2.4 MB (the server takes 4.5 MB per request, and text and base64 add to it):
+     pictures over 2048 px are scaled down, then all are re-encoded smaller step by step only while the total is still too big */
+  async function fitImages(blobs) { var MAX = 2400000, tot = function (a) { return a.reduce(function (s, b) { return s + (b.size || 0); }, 0); };
+    var big = blobs.some(function (b) { return /image\/(jpeg|png|webp)/.test(b.type || '') && b.size > 400000; }); if (tot(blobs) <= MAX && !big) return blobs;
+    var enc = async function (b, sc, q) { if (!/^image\//.test(b.type || '') || typeof createImageBitmap !== 'function') return b; var bm = await createImageBitmap(b); var k = Math.min(1, 2048 / Math.max(bm.width, bm.height)) * sc; var w = Math.max(64, Math.round(bm.width * k)), h = Math.max(64, Math.round(bm.height * k)); var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.drawImage(bm, 0, 0, w, h); try { bm.close(); } catch (e) { /* ok */ } var out = await new Promise(function (r) { cv.toBlob(r, 'image/jpeg', q); }); return out && out.size < b.size ? out : b; };
+    var sc = 1, q = 0.86, cur = blobs; for (var step = 0; step < 6; step++) { cur = await Promise.all(blobs.map(function (b) { return enc(b, sc, q); })); if (tot(cur) <= MAX) return cur; sc *= 0.8; q = Math.max(0.6, q - 0.06); } return cur; }
+  async function toMsgs(messages, images) {
+    var out = (messages || []).map(function (m) { return { role: m.role === 'assistant' ? 'assistant' : 'user', content: typeof m.content === 'string' ? [{ type: 'text', text: m.content || ' ' }] : (m.content || []) }; });
+    var merged = []; for (var m of out) { var last = merged[merged.length - 1]; if (last && last.role === m.role) last.content = last.content.concat(m.content); else merged.push(m); }
+    if (images && images.length && merged.length) { var lu = merged[merged.length - 1]; var blobs = []; for (var im of images) { try { blobs.push(im instanceof Blob ? im : await (await fetch(im)).blob()); } catch (e) { /* skip */ } }
+      try { blobs = await fitImages(blobs); } catch (e) { /* as they are */ }
+      for (var bl of blobs) { try { lu.content.push({ type: 'image', source: { type: 'base64', media_type: bl.type || 'image/jpeg', data: await b64(bl) } }); } catch (e) { /* skip */ } } }
+    if (merged[0] && merged[0].role !== 'user') merged.unshift({ role: 'user', content: [{ type: 'text', text: '(continue)' }] });
+    return merged;
+  }
+  // web search: on when a caller asks for it, or when the player's request clearly asks to look something up online
+  var WEB_RX = /\b(search (the )?(web|internet|online)|look (it |this |that )?up|google (it|for)|latest|news|current(ly)?|today'?s|this (week|month|year)|right now|recent(ly)?)\b/i;
+  async function sample(messages, opt) {
+    opt = opt || {};
+    var msgs = await toMsgs(messages, opt.images);
+    var tools = (opt.tools || []).map(function (t) { return { name: t.name, description: String(t.description || '').slice(0, 4000), input_schema: t.inputSchema || t.input_schema || { type: 'object', properties: {} } }; });
+    var byName = {}; (opt.tools || []).forEach(function (t) { byName[t.name] = t; });
+    var lastUser = ''; for (var i = msgs.length - 1; i >= 0 && !lastUser; i--) if (msgs[i].role === 'user') lastUser = (msgs[i].content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join(' ');
+    var web = opt.use_web_search != null ? !!opt.use_web_search : WEB_RX.test(String(lastUser).slice(-2000));
+    var text = '', model = PROVIDER === 'claude' ? pickModel(opt.model, tools) : (opt.model || 'local');
+    for (var turn = 0; turn < 40; turn++) {
+      if (opt.signal && opt.signal.aborted) throw err('cancelled', 'cancelled', text);
+      var body;
+      if (PROVIDER === 'claude' && model === GEMINI) {
+        body = { model: model, max_tokens: 4096, messages: msgs }; if (tools.length) body.tools = tools;
+      } else if (PROVIDER === 'claude') {
+        body = { model: model, max_tokens: model === OPUS ? 16000 : 4096, messages: cacheMarks(msgs) }; /* the builder sends NO effort setting (Claude's own default - exactly what the earlier, better version did); other heavy calls stay quick */
+        var tl = tools.slice(); if (web && model === OPUS) tl.push({ type: 'web_search_20260209', name: 'web_search', max_uses: 3 });
+        if (tl.length) body.tools = cacheTools(tl);
+      } else { body = { model: model, max_tokens: 4096, messages: msgs, use_web_search: web && turn === 0 }; if (tools.length) body.tools = tools; }
+      /* a real system prompt (the builder's instructions + references): cached by Claude, sent as Gemini's system instruction; the local AI gets it as its first message */
+      if (opt.system) { if (PROVIDER === 'claude' && model !== GEMINI) body.system = [{ type: 'text', text: String(opt.system), cache_control: { type: 'ephemeral' } }]; else if (PROVIDER === 'claude') { /* Gemini 3.5 Flash-Lite: no system prompt (faster) */ } else if (turn === 0 && !(msgs[0] && msgs[0].__sys)) { var sm = { role: 'user', content: [{ type: 'text', text: String(opt.system) }] }; Object.defineProperty(sm, '__sys', { value: true }); msgs.unshift(sm); } }
+      var res; try { res = await call(body, opt.signal, opt.purpose); if (model === GEMINI && GEMINI_OFF) model = HAIKU; } catch (e) { if (e.name === 'AbortError') throw err('cancelled', 'cancelled', text); throw e; }
+      var tu = []; for (var c of res.content || []) { if (c.type === 'text') { if (!c.text) continue; text += (text ? '\n' : '') + c.text; try { opt.onText && opt.onText({ text: text }); } catch (e) { /* ok */ } } else if (c.type === 'tool_use') tu.push(c); }
+      msgs.push({ role: 'assistant', content: res.content });
+      if (res.stop_reason === 'pause_turn') continue; // a long server-side web search: let Claude carry on
+      if (res.stop_reason !== 'tool_use' || !tu.length) break;
+      var runOne = async function (u) { var out; try { var t = byName[u.name]; out = t && t.execute ? await t.execute(u.input || {}) : 'unknown tool'; } catch (e) { out = 'error: ' + (e.message || e); } return { type: 'tool_result', tool_use_id: u.id, content: typeof out === 'string' ? out.slice(0, 20000) : JSON.stringify(out === undefined ? 'ok' : out).slice(0, 20000) }; };
+      /* a character's live mind (talking, moving, looking) does several things at once: its tool calls in one reply run together; building (heavy model) keeps them in order, so world edits never collide */
+      var results = model === OPUS ? [] : await Promise.all(tu.map(runOne)); if (model === OPUS) for (var u of tu) results.push(await runOne(u));
+      msgs.push({ role: 'user', content: results });
+    }
+    return { text: text, modelApplied: true };
+  }
+  sample.json = async function (prompt, opt) {
+    var msgs = typeof prompt === 'string' ? [{ role: 'user', content: prompt }] : prompt;
+    msgs = msgs.concat([{ role: 'user', content: 'Reply with ONLY one JSON value (no prose, no code fence).' }]);
+    var r = await sample(msgs, Object.assign({ model: 'opus' }, opt || {}, { tools: [] })); var t = r.text || '';
+    var s = t.indexOf('{'), a = t.indexOf('['); var i = s < 0 ? a : a < 0 ? s : Math.min(s, a); var j = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+    try { return JSON.parse(i >= 0 && j > i ? t.slice(i, j + 1) : t); } catch (e) { return null; }
+  };
+  sample.decide = decide; /* yes/no questions: Gemini Decision 1 first */
+  sample.limits = async function () { return { images: true, maxCount: 4, local: PROVIDER === 'local', provider: PROVIDER, remaining: null }; };
+  window.localAI = { get url() { return AI_URL; }, resolve: resolveUrl, sample: sample, health: async function () { await resolveUrl(); return fetch(AI_URL + '/health', { headers: hdr() }).then(function (r) { return r.json(); }); } };
+  // the game asks for capabilities by name; only 'sample' (the AI) is provided here
+  // local listening: the microphone is recorded phrase by phrase (voice activity detection) and each phrase is sent to the
+  // local AI's /hear, which listens to the sound itself and returns the words plus how they were said (emotion, tone,
+  // energy, voice, other sounds). Nothing goes to a cloud speech service.
+  function makeDictation() {
+    var L = { p: [], f: [], s: [] }, state = 'idle', stream = null, ac = null, an = null, raf = 0, talking = false, quietSince = 0, began = 0, floor = 0.004;
+    function emit(k, v) { L[k].forEach(function (fn) { try { fn(v); } catch (e) { /* ok */ } }); }
+    function setState(s) { state = s; emit('s', { state: s }); }
+    async function send(blob) {
+      if (!blob || blob.size < 1000) return;
+      emit('p', { text: '' });
+      try {
+        var j = await hearAudio(blob); if (!j) return;
+        emit('f', { text: String(j.transcript || '').trim(), analysis: j });
+      } catch (e) { console.warn('[voice] listening failed:', e && e.message); }
+    }
+    /* the microphone's own samples are kept in a short ring (pre-roll), so a phrase starts ~0.6 s BEFORE the voice was detected and
+       the first syllable is never cut off; a phrase is encoded as a WAV of exactly what was heard */
+    var sr = 48000, ring = [], ringLen = 0, phrase = null, phraseLen = 0, sp = null, mute = null;
+    function onPcm(e) { var d = new Float32Array(e.inputBuffer.getChannelData(0)); if (talking && phrase) { phrase.push(d); phraseLen += d.length; } ring.push(d); ringLen += d.length; while (ringLen - ring[0].length > sr * 0.6) { ringLen -= ring[0].length; ring.shift(); } }
+    function wavOf(chunksF, rate) { var n = 0; chunksF.forEach(function (c) { n += c.length; }); var out = new DataView(new ArrayBuffer(44 + n * 2)), w = function (o, t) { for (var i = 0; i < t.length; i++) out.setUint8(o + i, t.charCodeAt(i)); };
+      w(0, 'RIFF'); out.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true); out.setUint32(24, rate, true); out.setUint32(28, rate * 2, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, n * 2, true);
+      var k = 0; chunksF.forEach(function (c) { for (var i = 0; i < c.length; i++, k++) { var v = Math.max(-1, Math.min(1, c[i])); out.setInt16(44 + k * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); } }); return new Blob([out.buffer], { type: 'audio/wav' }); }
+    function beginPhrase() { phrase = ring.slice(); phraseLen = ringLen; began = performance.now(); talking = true; emit('p', { text: '' }); }
+    function endPhrase() { talking = false; var ch = phrase || [], len = phraseLen; phrase = null; phraseLen = 0; if (len < sr * 0.35) return; /* a click, not a word */ send(wavOf(ch, sr)); }
+    function loop() {
+      if (state !== 'listening' || !an) return; raf = requestAnimationFrame(loop);
+      var buf = new Float32Array(an.fftSize); an.getFloatTimeDomainData(buf); var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i]; var rms = Math.sqrt(s / buf.length), now = performance.now();
+      if (!talking) floor = floor * 0.995 + Math.min(rms, floor * 3 + 0.002) * 0.005; // background noise level (a spoken word does not drag it up)
+      var on = Math.max(0.0045, floor * 2.2), off = Math.max(0.003, floor * 1.5); /* quiet speech starts a phrase; soft words inside it keep it going */
+      if (talking ? rms > off : rms > on) { quietSince = 0; if (!talking) beginPhrase(); }
+      else if (talking) { if (!quietSince) quietSince = now; if (now - quietSince > 1000) endPhrase(); }
+      if (talking && now - began > 15000) { endPhrase(); } // very long speech: send it in pieces
+    }
+    return {
+      start: async function () {
+        if (state === 'listening') return;
+        try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+        catch (e) { var er = new Error('microphone not allowed'); er.code = 'not_granted'; throw er; }
+        ac = new (window.AudioContext || window.webkitAudioContext)(); an = ac.createAnalyser(); an.fftSize = 1024; var srcN = ac.createMediaStreamSource(stream); srcN.connect(an);
+        sr = ac.sampleRate; ring = []; ringLen = 0; try { sp = ac.createScriptProcessor(4096, 1, 1); sp.onaudioprocess = onPcm; mute = ac.createGain(); mute.gain.value = 0; srcN.connect(sp); sp.connect(mute); mute.connect(ac.destination); } catch (e) { sp = null; }
+        try { if (ac.state === 'suspended') await ac.resume(); } catch (e) { /* ok */ }
+        setState('listening'); loop();
+      },
+      stop: async function () { cancelAnimationFrame(raf); if (talking) endPhrase(); try { sp && sp.disconnect(); mute && mute.disconnect(); } catch (e) { /* ok */ } sp = mute = null; try { stream && stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { /* ok */ } try { ac && ac.close(); } catch (e) { /* ok */ } stream = ac = an = null; setState('idle'); },
+      onPartial: function (fn) { L.p.push(fn); }, onFinal: function (fn) { L.f.push(fn); }, onState: function (fn) { L.s.push(fn); }
+    };
+  }
+  // world hearing: everything the simulation plays (music, sound effects, voices) is also fed to a silent tap. While an AI is
+  // listening (Smart Ollo / Caine or any character mind), short live clips of whatever is audible are recorded and the local
+  // AI listens to them (/hear), so the minds know what music or sounds are playing around them right now.
+  var TAPS = new Map();
+  function tapFor(ctx) {
+    var t = TAPS.get(ctx); if (t) return t;
+    try { var out = ctx.createMediaStreamDestination(), an = ctx.createAnalyser(); an.fftSize = 32768; /* ~0.7 s of sound for YAMNet's real-time check */ t = { out: out, an: an }; TAPS.set(ctx, t); return t; } catch (e) { return null; }
+  }
+  (function patchConnect() {
+    var AN = window.AudioNode; if (!AN || AN.prototype.__tapped) return; var orig = AN.prototype.connect; AN.prototype.__tapped = true;
+    AN.prototype.connect = function (dst) {
+      var r = orig.apply(this, arguments);
+      try { if (dst && this.context && dst === this.context.destination) { var t = tapFor(this.context); if (t) { orig.call(this, t.out); orig.call(this, t.an); } } } catch (e) { /* ok */ }
+      return r;
+    };
+  })();
+  var EARS = { busy: false, last: 0, every: 8000, checking: false, go: false };
+  function worldLevel() { var best = 0, buf = new Float32Array(1024); TAPS.forEach(function (t, ctx) { if (ctx.state !== 'running') return; t.an.getFloatTimeDomainData(buf); var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i]; best = Math.max(best, Math.sqrt(s / buf.length)); }); return best; }
+  setInterval(function () {
+    try {
+      if (EARS.busy || document.hidden || !window.__simEarsWanted || !window.__simEarsWanted()) return;
+      if (performance.now() - EARS.last < EARS.every || worldLevel() < 0.003 || EARS.checking) return;
+      var tq = null, cq = null; TAPS.forEach(function (x, ctx) { if (!tq && ctx.state === 'running') { tq = x; cq = ctx; } }); if (!tq) return;
+      var win = new Float32Array(tq.an.fftSize); tq.an.getFloatTimeDomainData(win); EARS.checking = true;
+      yamDetect(win, cq.sampleRate).then(function (yd) { EARS.checking = false; if (yd.heard) EARS.go = true; }, function () { EARS.checking = false; if (worldLevel() >= 0.01) EARS.go = true; /* no YAMNet: loudness decides */ });
+      if (!EARS.go) return; EARS.go = false;
+      var t = null; TAPS.forEach(function (x, ctx) { if (!t && ctx.state === 'running') t = x; }); if (!t || !window.MediaRecorder) return;
+      EARS.busy = true; EARS.last = performance.now();
+      var chunks = [], mr = new MediaRecorder(t.out.stream);
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      mr.onstop = async function () {
+        try {
+          var blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+          var ctxS = 'This is live sound playing inside a 3D game world right now (music, sound effects, character voices, ambience). Describe the music (genre, mood, instruments, tempo) and every sound you can identify.';
+          var near = null; try { near = GEMINI_KEY && !GEMINI_OFF ? await hearAudio(blob, ctxS) : await localHear(blob, ctxS); } catch (e) { near = null; } /* with your Gemini key: sorted by Gemini Decision 1, then Transcribe or Flash-Lite; without one: on this device */
+          if (near && (String(near.transcript || '').trim() || String(near.sounds || '').trim())) {
+            var go = true; try { go = window.__simHearGate ? await window.__simHearGate(near) : true; } catch (e) { go = true; } /* the decision model: react to this at all? */
+            if (go) {
+              var j = near;
+              if (j && window.__onSimHeard) window.__onSimHeard(j, true);
+            }
+          }
+        } catch (e) { /* local AI offline: try again later */ }
+        EARS.busy = false;
+      };
+      mr.start(); setTimeout(function () { try { mr.stop(); } catch (e) { EARS.busy = false; } }, 5000);
+    } catch (e) { EARS.busy = false; }
+  }, 1000);
+  window.localAI.worldLevel = worldLevel;
+  var DICTATION = null;
+  /* permanent local library store (IndexedDB) used when the page has no host database: same collection/doc API */
+  var LOCALDB = null;
+  function makeLocalDb() {
+    var open = new Promise(function (res, rej) { var r = indexedDB.open('amazing-sim-db', 1); r.onupgradeneeded = function () { r.result.createObjectStore('docs'); }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; });
+    function tx(mode, fn) { return open.then(function (d) { return new Promise(function (res, rej) { var t = d.transaction('docs', mode), st = t.objectStore('docs'), out = fn(st); t.oncomplete = function () { res(out && 'result' in out ? out.result : undefined); }; t.onerror = function () { rej(t.error); }; }); }); }
+    function clone(v) { try { return JSON.parse(JSON.stringify(v)); } catch (e) { return v; } }
+    function snapDoc(id, v) { return { id: id, exists: v !== undefined, data: function () { return v === undefined ? undefined : clone(v); } }; }
+    function docRef(path) { var id = path.slice(path.lastIndexOf('/') + 1); return {
+      id: id,
+      get: function () { return tx('readonly', function (s) { return s.get(path); }).then(function (v) { return snapDoc(id, v); }); },
+      set: function (v, o) { return (o && o.merge ? docRef(path).get().then(function (s) { return Object.assign({}, s.data() || {}, clone(v)); }) : Promise.resolve(clone(v))).then(function (val) { return tx('readwrite', function (s) { s.put(val, path); }); }); },
+      update: function (v) { return docRef(path).set(v, { merge: true }); },
+      delete: function () { return tx('readwrite', function (s) { s.delete(path); }); } }; }
+    function coll(name, lim) { var pre = name + '/'; return {
+      doc: function (id) { return docRef(pre + String(id == null ? Math.random().toString(36).slice(2) : id)); },
+      add: function (v) { var r = docRef(pre + Math.random().toString(36).slice(2) + Date.now().toString(36)); return r.set(v).then(function () { return r; }); },
+      limit: function (n) { return coll(name, n); },
+      get: function () { return open.then(function (d) { return new Promise(function (res, rej) { var t = d.transaction('docs', 'readonly'), docs = [], rq = t.objectStore('docs').openCursor(IDBKeyRange.bound(pre, pre + '\uffff')); rq.onsuccess = function () { var c = rq.result; if (c && (!lim || docs.length < lim)) { var k = String(c.key); if (k.indexOf('/', pre.length) < 0) docs.push(snapDoc(k.slice(pre.length), c.value)); c.continue(); } else res({ docs: docs, size: docs.length, empty: !docs.length, forEach: function (f) { docs.forEach(f); } }); }; rq.onerror = function () { rej(rq.error); }; }); }); } }; }
+    return { collection: function (n) { return coll(String(n)); }, doc: function (p) { return docRef(String(p)); }, local: true };
+  }
+  window.claude = { use: async function (name) { if (name === 'db') { try { return LOCALDB || (LOCALDB = makeLocalDb()); } catch (e) { return null; } } if (name === 'sample') return sample; if (name === 'dictation') return DICTATION || (DICTATION = makeDictation()); return null; } };
+
+  // small status note: shown only while the local AI cannot be reached
+  var note = null;
+  function setStatus(up) {
+    if (up) { if (note) { note.remove(); note = null; } return; }
+    if (!up) { console.info('[local AI] not reachable (no note shown)'); return; } /* the 'Local AI offline' note is never shown: the cloud models answer instead */
+    if (note || !document.body) return;
+    note = document.createElement('div'); note.setAttribute('role', 'status');
+    note.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));z-index:10000;max-width:min(560px,calc(100% - 24px));background:rgba(15,26,34,.94);color:#f1e7cf;border:1px solid rgba(241,231,207,.2);border-radius:10px;padding:10px 12px;font:13px/1.45 "IBM Plex Sans",system-ui,sans-serif;display:flex;gap:10px;align-items:flex-start;box-shadow:0 8px 24px rgba(0,0,0,.3)';
+    note.innerHTML = '<span style="flex:1"><b style="color:#f2b632">Local AI offline.</b> Start it with <code>start.bat</code> (Windows) or <code>./start.sh</code> (Mac/Linux) on the AI computer, then press Retry. Last tried: <code></code>.</span><button type="button" style="background:#f2b632;color:#0f1a22;border:0;border-radius:6px;padding:5px 10px;font:600 12px system-ui;cursor:pointer">Retry</button><button type="button" aria-label="Dismiss" style="background:none;border:0;color:#9db0b0;font-size:16px;cursor:pointer;line-height:1">&times;</button>';
+    note.querySelector('code:last-of-type').textContent = AI_URL;
+    var bs = note.querySelectorAll('button'); bs[0].onclick = function () { check(); }; bs[1].onclick = function () { if (note) { note.remove(); note = null; } };
+    document.body.appendChild(note);
+  }
+  function check() { if (PROVIDER !== 'local') return; resolveUrl(true).then(function () { return fetch(AI_URL + '/health', { cache: 'no-store', headers: hdr() }); }).then(function (r) { setStatus(r.ok); }, function () { setStatus(false); }); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
+})();
+</script>
+<aside id="panel">
+  <header>
+    <h1>The Amazing Digital Circus<small>Episode 1 set map · full island</small></h1>
+    <button id="toggle" type="button" aria-expanded="true" aria-controls="panel">Hide</button>
+  </header>
+  <section>
+    <div class="row between"><span id="clock">15:30</span><span id="phase">Day</span></div>
+    <input id="time" type="range" min="0" max="23.99" step="0.05" value="15.5" aria-label="Time of day">
+    <div class="presets">
+      <button type="button" data-preset="5.9,clear">Dawn</button>
+      <button type="button" data-preset="12,clear">Midday</button>
+      <button type="button" data-preset="15.5,clear">Opening scene</button>
+      <button type="button" data-preset="18.1,clear">Sunset</button>
+      <button type="button" data-preset="18.45,storm">Storm dusk</button>
+      <button type="button" data-preset="22.5,clear">Moonlit night</button>
+    </div>
+    <dl><dt>Sun</dt><dd id="sunR">–</dd><dt>Moon</dt><dd id="moonR">–</dd></dl>
+    <div class="row">
+      <label for="date">Date on the island<input id="date" type="date" value="1998-08-07" min="1980-01-01" max="2010-12-31"></label>
+      <button id="play" type="button" aria-pressed="false">Play day</button>
+    </div>
+  </section>
+  <section>
+    <h2>Weather</h2>
+    <div class="row">
+      <label for="weather">Sky<select id="weather"><option value="clear">Clear</option><option value="fog">Fog rolling in</option><option value="storm">Tropical downpour</option></select></label>
+      <label for="fog">Haze<input id="fog" type="range" min="0" max="1" step="0.01" value="0.12"></label>
+    </div>
+  </section>
+  <section>
+    <h2>Shots</h2>
+    <select id="cam" aria-label="Jump to a camera"></select>
+    <label class="check" for="marks"><input id="marks" type="checkbox">Show character and prop marks</label>
+  </section>
+  <section>
+    <h2>Blender</h2>
+    <button id="export" class="primary" type="button">Export this lighting to Blender</button>
+    <p id="note">One .glb: every object, the sun and moon as set above, the glow lights and all shot cameras.</p>
+  </section>
+  <footer><span id="stats"></span><br>Drag to orbit · right-drag or two fingers to pan · scroll or pinch to zoom · double-click to refocus · WASD and Q/E to move</footer>
+</aside>
+<script>
+// Load simulation runtime scripts in strict execution order without bundler rewriting of importmap CDN modules
+(function () {
+  var queue = [
+    { src: './sim/sky.js', module: false },
+    { src: './sim/emb.js', module: false },
+    { src: './sim/neural.js', module: false },
+    { src: './sim/park.js', module: true },
+    { src: './sim/cast.js', module: true },
+    { src: './sim/sandbox.js', module: true }
+  ];
+  function next(i) {
+    if (i >= queue.length) return;
+    var item = queue[i];
+    var s = document.createElement('script');
+    if (item.module) s.type = 'module';
+    s.src = item.src;
+    s.onload = function () { next(i + 1); };
+    s.onerror = function (e) { console.error('[sim] failed to load ' + item.src, e); };
+    document.body.appendChild(s);
+  }
+  next(0);
+})();
+</script>
+</body>
+</html>

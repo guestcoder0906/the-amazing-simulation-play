@@ -1,0 +1,14 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "headers": [
+    { "source": "/game(.html)?", "headers": [{ "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }, { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" }] },
+    { "source": "/sim/(.*)", "headers": [{ "key": "Cross-Origin-Resource-Policy", "value": "same-origin" }] },
+    { "source": "/data/(.*)", "headers": [{ "key": "Cross-Origin-Resource-Policy", "value": "same-origin" }] }
+  ],
+  "functions": {
+    "api/claude.ts": { "maxDuration": 300 },
+    "api/gemini.ts": { "maxDuration": 300 }
+  }
+}
