@@ -3731,7 +3731,7 @@ RPC.build = (id) => {
     // the remodelled body: decode the precomputed sculpt (checked against a signature of the spec), else sculpt it live
     try {
       const spec = ch.sculpt(ch); let mesh = null; const D = RPC.SCULPT_DATA && RPC.SCULPT_DATA[id];
-      if (D && D.bytes && !RPC.SCULPT_LIVE) { const sig = RPC.sculpt.signature(ch, spec); if (D.head.sig === sig || D.trust) mesh = RPC.organic.unpack(D.head, D.bytes); /* trust: shipped data made from this exact, unchanged builder (its fingerprint came from an older engine) */ else console.warn('sculpt data out of date for', id, D.head.sig, sig); }
+      if (D && D.bytes && !RPC.SCULPT_LIVE) { const sig = RPC.sculpt.signature(ch, spec); if (D.head.sig === sig || D.trust) mesh = RPC.organic.unpack(D.head, D.bytes); /* trust: shipped data made from this exact, unchanged builder (its fingerprint came from an older engine) */ else console.info('[sculpt] saved body data for', id, 'is from an older builder: it is rebuilt fresh (a little slower to load, same result)'); }
       if (!mesh) { const so = RPC.SCULPT_LIVE ? {} : { voxel: Math.max(spec.voxel, 0.0042), targetTris: Math.min(spec.targetTris, 26000) }; let done = false; /* AI-made characters: separate hinged jaws and, where they would fuse, separate arms (the shipped cast keeps its own skin exactly) */
         if (ch._aiMade) { try { const out = aiSculpt(ch, spec, so); mesh = out.mesh; ch.sculptStats = out.stats; done = true; } catch (e) { console.warn('[sculpt] separate pieces failed, using one skin', id, e); } }
         if (!done) { const r = RPC.sculpt.build(ch, spec, so); mesh = r.mesh; ch.sculptStats = r.stats; } }
