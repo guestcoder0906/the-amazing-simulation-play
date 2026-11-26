@@ -67307,16 +67307,20 @@ function speakMelody(x2, sr, text, pr) {
   const bF = syllableBounds(x2, sr, f3, hop, K2);
   if (!bF) return null;
   const Kf2 = bF.length - 1;
-  const end = /\?\s*["')]*\s*$/.test(text) ? "?" : /!\s*["')]*\s*$/.test(text) ? "!" : /(\.\.\.|…)\s*$/.test(text) ? "\u2026" : ".";
+  const end = /\?\s*["')]*\s*$/.test(text) ? "?" : /!\s*["')]*\s*$/.test(text) ? "!" : /(\.\.\.|…)\s*$/.test(text) ? "\u2026" : /[,;:—–-]\s*$/.test(text) ? "," : ".";
   const acc1 = pr.acc1 ?? 8, acc2 = pr.acc2 ?? 5, decay = pr.decay ?? 0.7, low = pr.low ?? 3, endRise = pr.endRise ?? 8, keep = pr.keep ?? 0.35, decl = pr.decl ?? 1.5;
   const tgt = new Float32Array(Kf2), ramp = new Float32Array(Kf2);
-  let nAcc = 0;
+  let nAcc = pr.cont ? 1 : 0;
   for (let k4 = 0; k4 < Kf2; k4++) {
     const s3 = syl[Math.min(K2 - 1, Math.round(k4 * (K2 - 1) / Math.max(1, Kf2 - 1)))] || { acc: 0 }, dl2 = decl * (k4 / Math.max(1, Kf2 - 1));
     if (s3.acc) {
-      tgt[k4] = (nAcc === 0 || s3.acc === 2 ? acc1 : acc2 * Math.pow(decay, nAcc - 1)) - dl2;
+      tgt[k4] = (nAcc === 0 || s3.acc === 2 ? acc1 : acc2 * Math.max(0.55, Math.pow(decay, nAcc - 1))) - dl2;
       nAcc++;
     } else tgt[k4] = -low - dl2;
+  }
+  if (pr.cont && Kf2 > 1) {
+    tgt[0] = Math.min(tgt[0], 1);
+    for (let k4 = 1; k4 < Math.min(Kf2, 3); k4++) tgt[k4] = Math.min(tgt[k4], tgt[0] + 6 * k4);
   }
   const L2 = Kf2 - 1;
   if (end === "!") {
@@ -67325,6 +67329,9 @@ function speakMelody(x2, sr, text, pr) {
   } else if (end === "?") {
     tgt[L2] = Math.max(tgt[L2], 0);
     ramp[L2] = endRise * 0.8;
+  } else if (end === ",") {
+    tgt[L2] = Math.max(tgt[L2], -1);
+    ramp[L2] = 2;
   } else if (end === "\u2026") {
     tgt[L2] = -low - 1;
     ramp[L2] = -2;
@@ -67366,8 +67373,9 @@ function speakMelody(x2, sr, text, pr) {
   });
   const y3 = psolaOLA(x2, sr, mk, N3, (ts2) => ts2, (ts2, pa2) => {
     const want = center * Math.pow(2, tFrame(Math.round(ts2 / hop)) / 12);
-    sm2 = sm2 ? sm2 + (want - sm2) * 0.35 : want;
-    return sm2 / (sr / pa2);
+    sm2 = sm2 ? sm2 * Math.pow(2, Math.max(-1, Math.min(1, 12 * Math.log2(want / sm2) * 0.35)) / 12) : want;
+    const own = sr / pa2;
+    return Math.max(Math.pow(2, -7 / 12), Math.min(2.15, sm2 / own));
   }, mkRnd(Kf2 * 131 + N3), false, pr.tract);
   const dyn = +pr.dyn || 0;
   if (dyn) {
