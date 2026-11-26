@@ -900,15 +900,32 @@ function olloTick(dt) { if (RAG.has(ollo)) return; /* the ragdoll owns his body 
   const playerHover = PLAYER.c === ollo && PLAYER.kind === 'hover';
   if (OH.target) { const T = OH.target; const tp = T.p; const dx = tp.x - p.x, dz = tp.z - p.z, dist = Math.hypot(dx, dz), dy = tp.y - p.y; const d3 = Math.hypot(dist, dy);
     // look ahead: anything solid in the way at body height? climb over it
-    if (dist > 0.05) { const dir = new THREE.Vector3(dx, 0, dz).normalize(); const look = Math.min(dist, 0.6 + OH.speed * 0.7); const kz = bodyK(); for (const hgt of [0.12, 0.36, 0.62]) { const hit = castRay(new THREE.Vector3(p.x, p.y + hgt * kz, p.z), dir, look + BODY_R * kz); if (hit) { /* only climb over things he could fly over (look for the obstacle top just above him, never a roof/ceiling far up) */ const top = groundBelow(hit.point.x + dir.x * 0.3, hit.point.z + dir.z * 0.3, p.y + 3.2, 80); if (ALT.on && (top === null || top - floorY >= 1.2 * kz)) { const cb = T.onArrive; OH.target = null; OH.vel.multiplyScalar(0.2); try { brainLog('event', 'something tall is in your way: you stopped instead of flying over it - go around it'); } catch (e) { /* ok */ } if (cb) cb(); break; } if (top !== null && top - floorY < 4) { T.climb = Math.max(T.climbUntil > OH.t ? (T.climb || 0) : 0, top + OH.hover + 0.15); T.climbUntil = OH.t + 0.9; } } } }
+    /* STEERING (how game characters move around things): look ahead along the way at three body heights; if something is in the way,
+       first try to go AROUND it (the clearest direction within 90 degrees that still heads toward the target), and only fly OVER it when it
+       is low and there is no way round. He used to always climb over things (flying far too high) or, as Caine, stop dead in front of
+       anything tall and get stuck */
+    const kz = bodyK(); const hgts = [0.15, 0.4, 0.7].map((h) => h * kz * (ALT.on ? 1.6 : 1));
+    const blocked = (dir, len) => { for (const h of hgts) { const hit = castRay(new THREE.Vector3(p.x, p.y + h, p.z), dir, len + BODY_R * kz); if (hit) return hit; } return null; };
+    if (dist > 0.05) { const dir = new THREE.Vector3(dx, 0, dz).normalize(); const look = Math.min(dist, 0.7 + OH.speed * 0.8); const hit = (T.avoid && T.avoid.until > OH.t) ? null : blocked(dir, look);
+      if (hit) { let best = null; for (const a of [30, -30, 60, -60, 90, -90]) { const r = a * Math.PI / 180, d2 = new THREE.Vector3(dir.x * Math.cos(r) - dir.z * Math.sin(r), 0, dir.x * Math.sin(r) + dir.z * Math.cos(r)); if (!blocked(d2, look)) { best = d2; break; } }
+        if (best) T.avoid = { dir: best, until: OH.t + 0.55 };
+        else { const top = groundBelow(hit.point.x + dir.x * 0.3, hit.point.z + dir.z * 0.3, p.y + 3.2, 80); const lowEnough = top !== null && top - floorY < (ALT.on ? 0.6 : 1.2) * kz;
+          if (lowEnough) { T.climb = Math.max(T.climbUntil > OH.t ? (T.climb || 0) : 0, top + OH.hover + 0.15); T.climbUntil = OH.t + 0.9; }
+          else { const cb = T.onArrive; OH.target = null; OH.vel.multiplyScalar(0.2); try { brainLog('event', 'the way there is blocked on every side: you stopped - pick another route or another spot'); } catch (e) { /* ok */ } if (cb) cb(); } } } }
+    if (!OH.target) { /* stopped above: nothing more to do this frame for the target */ } else {
     if (T.climb && !(T.climbUntil > OH.t)) T.climb = null; /* past the obstacle: back down to normal height (above it the floor itself is its top) */
     const tY = Math.max(tp.y, (T.climb || -1e9)); if (dist < 0.4) T.climb = null;
-    want = new THREE.Vector3(tp.x, tY, tp.z); const sp = T.speed || 2.2; const arrive = clamp(d3 / 1.2, 0.08, 1);
+    const capY = floorY + OH.hover + (OH.allowHigh ? 60 : ALT.on ? 0.9 * kz : 2.5); /* moving never lifts him far above the floor unless a high spot was asked for */
+    want = new THREE.Vector3(tp.x, Math.min(tY, Math.max(capY, T.climb || -1e9)), tp.z);
+    if (T.avoid && T.avoid.until > OH.t) want = new THREE.Vector3(p.x + T.avoid.dir.x * 0.8, want.y, p.z + T.avoid.dir.z * 0.8); /* going round */
+    /* stuck: no real progress for a second -> sidestep; still stuck after three tries -> give up this target and say so */
+    if (!T.prog) T.prog = { t: OH.t, d: dist, n: 0 }; else if (OH.t - T.prog.t > 1.0) { if (T.prog.d - dist < 0.08 && dist > 0.3) { T.prog.n++; const s = T.prog.n % 2 ? 1 : -1; const dir0 = new THREE.Vector3(dx, 0, dz).normalize(); T.avoid = { dir: new THREE.Vector3(-dir0.z * s, 0, dir0.x * s), until: OH.t + 0.8 }; if (T.prog.n >= 3) { const cb = T.onArrive; OH.target = null; OH.vel.multiplyScalar(0.2); try { brainLog('event', 'you could not get there (stuck): try another way or another spot'); } catch (e) { /* ok */ } if (cb) cb(); } } else T.prog.n = 0; T.prog.t = OH.t; T.prog.d = dist; }
+    const sp = T.speed || 2.2; const arrive = clamp(d3 / 1.2, 0.08, 1);
     const desired = want.clone().sub(p); const L = desired.length(); if (L > 1e-4) desired.multiplyScalar(sp * arrive / L);
     OH.vel.lerp(desired, 1 - Math.exp(-dt * 3.2));
     if (d3 < 0.1 && OH.vel.length() < 0.25) { const cb = T.onArrive; OH.target = null; OH.holdUntil = OH.t + (OH.allowHigh ? 20 : 6); /* he stays up there only a little while */ OH.vel.multiplyScalar(0.5); if (cb) cb(); }
-    if (dist > 0.15) OH.yawTarget = T.keepYaw != null ? T.keepYaw : Math.atan2(dx, dz); /* facing kept: backwards / sideways */
-  } else {
+    if (OH.target && dist > 0.15) OH.yawTarget = T.keepYaw != null ? T.keepYaw : Math.atan2(dx, dz); /* facing kept: backwards / sideways */
+  } } else {
     if (OH.holdY != null && !playerHover && PLAYER.c !== ollo) { if (OH.holdUntil == null) OH.holdUntil = OH.t + 6; else if (OH.holdUntil <= OH.t) { OH.holdY = null; OH.allowHigh = false; OH.holdUntil = null; } } /* the held height (and any permission to be high) runs out: settle back to his normal hover */
     /* idle height follows the ground under him (never stuck at an old high point), capped low unless a high spot was asked for on purpose */ const yWant = Math.max(cruise, Math.min(OH.holdY ?? -1e9, floorY + (playerHover ? 60 : ALT.on ? OH.hover + 1.0 /* Caine stays close to the ground unless the player flies him */ : OH.allowHigh ? 60 : OH.hover + 4.5)));
     if (!playerHover) { OH.vel.x *= Math.exp(-dt * 4); OH.vel.z *= Math.exp(-dt * 4); }
@@ -919,8 +936,9 @@ function olloTick(dt) { if (RAG.has(ollo)) return; /* the ragdoll owns his body 
   p.addScaledVector(OH.vel, dt);
   // never into the floor or a wall: soft-damped pushout prevents jitter against edges
   if (p.y < rawFloorY + 0.05) { p.y = rawFloorY + 0.05; OH.vel.y = Math.max(0, OH.vel.y); }
-  const c = new THREE.Vector3(p.x, p.y + 0.36, p.z);
-  for (const d of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0.7, 0, 0.7], [-0.7, 0, 0.7], [0.7, 0, -0.7], [-0.7, 0, -0.7]]) { const dv = new THREE.Vector3(...d).normalize(); const rad = BODY_R + (d[1] ? 0.22 : 0); const hit = castRay(c, dv, rad); if (hit) { const pen = rad - hit.distance; if (pen > 0.004) { p.addScaledVector(dv, -pen * 0.72); const vn = OH.vel.dot(dv); if (vn > 0) OH.vel.addScaledVector(dv, -vn); } } }
+  const kzB = bodyK(), bodyH = ALT.on ? 1.6 : 1; /* the body's real size: Caine is far bigger than Ollo, and was checked with Ollo's small radius at one height (bumping and clipping into things) */
+  for (const ch of [0.2, 0.45, 0.75]) { const c = new THREE.Vector3(p.x, p.y + ch * kzB * bodyH, p.z);
+  for (const d of (ch === 0.75 ? [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0.7, 0, 0.7], [-0.7, 0, 0.7], [0.7, 0, -0.7], [-0.7, 0, -0.7]] : [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0.7, 0, 0.7], [-0.7, 0, 0.7], [0.7, 0, -0.7], [-0.7, 0, -0.7]])) { const dv = new THREE.Vector3(...d).normalize(); const rad = BODY_R * kzB + (d[1] ? 0.22 * kzB : 0); const hit = castRay(c, dv, rad); if (hit) { const pen = rad - hit.distance; if (pen > 0.004) { p.addScaledVector(dv, -pen * 0.72); const vn = OH.vel.dot(dv); if (vn > 0) OH.vel.addScaledVector(dv, -vn); } } } } /* each body height */
   // hover bob (fades out at speed and in FPV so the camera stays steady), lean into motion, bank smoothly into turns
   OH.speed = Math.hypot(OH.vel.x, OH.vel.z); const still = 1 - smooth(OH.speed / 0.6);
   const bob = (CHK.fpv && PLAYER.c === ollo) ? 0 : Math.sin(OH.t * 2 * Math.PI / 2.6) * 0.022 * still;
