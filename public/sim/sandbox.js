@@ -474,6 +474,14 @@ function stressTests(c) { const A = armature(c); const B = c.ch.bones; const out
   const axes = (d) => { const a = Math.abs(d.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0); const u = new THREE.Vector3().crossVectors(d, a).normalize(); const v = new THREE.Vector3().crossVectors(d, u).normalize(); return [u, v]; };
   const add = (i, deg) => { const d = A.dir(B[i]); if (!d) return; for (const ax of axes(d)) for (const sg of [1, -1]) out.push({ bone: i, name: B[i].name + (sg > 0 ? ' +' : ' −') + Math.round(deg) + '°', q: new THREE.Quaternion().setFromAxisAngle(ax, sg * deg * Math.PI / 180) }); };
   for (const i of A.branch) add(i, 65); const spine = [...A.cont].filter((i) => A.kids[i].length && A.size[i] > 2); for (const i of spine) add(i, 35);
+  /* THE POSES IT REALLY MAKES: a jump tucks the legs far harder than any one-joint test (hip ~80 deg, knee ~120 deg, foot ~35 deg - the
+     locomotion's own tuck at the top of the arc), lands in a deep crouch, and throws the arms up and out. Riggers test and fix weights in
+     those exact poses, all joints at once (that is where the groin, knee and armpit collapse), so the repair pass sees them too */
+  try { const rest = RPC.newState(c.ch).L; const IK = c.ch.ik || []; const E = (i, x, y, z) => new THREE.Quaternion().fromArray(rest[i].q).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(x * Math.PI / 180, y * Math.PI / 180, z * Math.PI / 180)));
+    const legs = IK.filter((k) => k.kind === 'leg'), arms = IK.filter((k) => k.kind === 'arm'); const bi = (n) => c.ch.bi[n];
+    const pose = (name, chains, f) => { const multi = []; for (const k of chains) { const s = /\.R$|_R$|Right/i.test(k.name) ? -1 : 1; for (const [bn, e] of f(s)) { const i = bi(k[bn]); if (i !== undefined && rest[i]) multi.push({ bone: i, q: E(i, e[0], e[1], e[2]) }); } } if (multi.length) out.push({ bone: multi[multi.length > 1 ? 1 : 0].bone, name, multi }); };
+    if (legs.length) { pose('jump tuck', legs, (s) => [['upper', [-81, 0, 8 * s]], ['lower', [119, 0, 0]], ['end', [35, 0, 0]]]); pose('landing crouch', legs, (s) => [['upper', [-70, 0, 6 * s]], ['lower', [105, 0, 0]], ['end', [-25, 0, 0]]]); pose('jump reach down', legs, (s) => [['upper', [-30, 0, 4 * s]], ['lower', [45, 0, 0]]]); }
+    if (arms.length) { pose('jump arms up', arms, (s) => [['upper', [-75, 0, 55 * s]], ['lower', [-30, 0, 0]]]); pose('fall arms out', arms, (s) => [['upper', [-25, 0, 115 * s]], ['lower', [-35, 0, 0]]]); } } catch (e) { /* the one-joint tests alone */ }
   return out; }
 function deformTest(c, opt = {}) {
   const ch = c.ch; const body = skins(c).filter((m) => m.geometry.index).sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count)[0]; if (!body) return null; // the main body skin, not whichever mesh is listed first
@@ -494,12 +502,12 @@ function deformTest(c, opt = {}) {
   const baseBad = E.map(([a, b], i) => { if (!used[i]) return false; const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; return r > 2.0 || r < 0.35; });
   const subCache = new Map(); const subOf = (bone) => { let s = subCache.get(bone); if (s) return s; s = new Uint8Array(NB); const q = [bone]; while (q.length) { const x = q.pop(); if (s[x]) continue; s[x] = 1; q.push(...kids[x]); } subCache.set(bone, s); return s; };
   const fracCache = new Map(); const fracOf = (bone) => { let f = fracCache.get(bone); if (f) return f; const s = subOf(bone); f = new Map(); const fr = (v) => { let x = f.get(v); if (x !== undefined) return x; x = 0; for (let k = 0; k < 4; k++) { const w = SW.getComponent(v, k); if (w > 0 && s[SI.getComponent(v, k)]) x += w; } f.set(v, x); return x; }; f.fr = fr; fracCache.set(bone, f); return f; };
-  for (const T of stressTests(c)) { const st = RPC.newState(ch); st.L[T.bone].q = T.q.toArray(); c.st = st; c.syncToBones(true); c.group.updateMatrixWorld(true); body.skeleton.update();
-    const fr = fracOf(T.bone).fr; let bad = 0; const n = nUsed; const culprits = new Map();
+  for (const T of stressTests(c)) { const st = RPC.newState(ch); if (T.multi) for (const mm of T.multi) st.L[mm.bone].q = mm.q.toArray(); else st.L[T.bone].q = T.q.toArray(); c.st = st; c.syncToBones(true); c.group.updateMatrixWorld(true); body.skeleton.update();
+    const fr = T.multi ? () => 0.5 : fracOf(T.bone).fr; /* a whole-body pose: no edge is rigid, all are measured */ let bad = 0; const n = nUsed; const culprits = new Map();
     E.forEach(([a, b], i) => { if (!used[i]) return; const fa = fr(a), fb = fr(b); const rigid = (fa < 1e-6 && fb < 1e-6) || (fa > 1 - 1e-6 && fb > 1 - 1e-6);
       const isBad = rigid ? baseBad[i] : (() => { const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; return r > 2.0 || r < 0.35; })();
       if (isBad) { bad++; culpritsOf(a, culprits); } });
-    const pct = n ? bad / n * 100 : 0; results.push({ test: T.name, bone: T.bone, pct }); perBone.set(T.bone, Math.max(perBone.get(T.bone) || 0, pct)); T.culprits = culprits; }
+    const pct = n ? bad / n * 100 : 0; results.push({ test: T.name, bone: T.bone, pct }); perBone.set(T.bone, Math.max(perBone.get(T.bone) || 0, pct)); if (T.multi) for (const mm of T.multi) perBone.set(mm.bone, Math.max(perBone.get(mm.bone) || 0, pct)); T.culprits = culprits; }
   c.st = keep.st; c.syncToBones(true); c.group.position.copy(keep.p); c.group.rotation.copy(keep.r); c.group.scale.copy(keep.s); c.group.updateMatrixWorld(true);
   const lim = opt.limit ?? 1.0; const failing = results.filter((r) => r.pct > lim).sort((a, b) => b.pct - a.pct);
   const mean = results.length ? results.reduce((a, r) => a + r.pct, 0) / results.length : 0;
@@ -612,12 +620,29 @@ function addShoulderHelpers(c) { if (c._shoulderHelpers) return 0; const B = c.c
       SI.needsUpdate = SW.needsUpdate = true; }
     HELPERS.push({ c, U, H, rq }); n++; }
   c._shoulderHelpers = n; return n; }
+/* HIP, KNEE AND ELBOW HELPERS (the same half-turning helper joint riggers put at every big hinge): linear skinning makes a knee or elbow
+   bent far (a jump tuck, a landing crouch, arms thrown up) pinch thin and a hip collapse the groin; the skin right at the joint is shared
+   with a helper that turns half as far, so it bends round in a smooth arc and keeps its volume */
+function addLimbHelpers(c) { if (c._limbHelpers) return 0; const B = c.ch.bones; const meshes = skins(c).filter((m) => m.isSkinnedMesh); if (!meshes.length) return 0; let n = 0; const rest = restLocal(c);
+  const want = []; for (const k of c.ch.ik || []) { if (k.kind === 'leg') { want.push([k.upper, k.lower, 0.5]); want.push([k.lower, k.end, 0.55]); } else if (k.kind === 'arm') want.push([k.lower, k.end, 0.5]); }
+  for (const [un, tn, share] of want) { const ui = c.ch.bi[un]; if (ui === undefined) continue; const U = c.bones[ui]; if (!U || !U.parent || U.userData._helped) continue; const b = B[ui]; const ti = tn ? c.ch.bi[tn] : undefined; const tail = b.tail || (ti !== undefined && B[ti] && B[ti].pos); if (!tail || !b.pos) continue;
+    const a = new THREE.Vector3(...b.pos), d = new THREE.Vector3(...tail).sub(a); const L = d.length(); if (L < 1e-4) continue; d.normalize();
+    const H = new THREE.Bone(); H.name = b.name + '_VolumeHelper'; H.position.copy(U.position); const rq = new THREE.Quaternion().fromArray(rest[ui].q); H.quaternion.copy(rq); U.parent.add(H); U.userData._helped = true;
+    for (const S of new Set(meshes.map((m) => m.skeleton))) { const ix = S.bones.indexOf(U); if (ix < 0) continue; S.bones = S.bones.concat([H]); S.boneInverses = S.boneInverses.concat([S.boneInverses[ix].clone()]); S.boneMatrices = new Float32Array(S.bones.length * 16); if (S.boneTexture) { S.boneTexture.dispose(); S.boneTexture = null; } if (S.computeBoneTexture) S.computeBoneTexture(); }
+    for (const m of meshes) { const S = m.skeleton, ix = S.bones.indexOf(U), hx = S.bones.indexOf(H); if (ix < 0 || hx < 0) continue; const P = m.geometry.attributes.position, SI = m.geometry.attributes.skinIndex, SW = m.geometry.attributes.skinWeight; const v = new THREE.Vector3();
+      for (let i = 0; i < P.count; i++) { let k = -1; for (let q = 0; q < 4; q++) if (SI.getComponent(i, q) === ix && SW.getComponent(i, q) > 0) k = q; if (k < 0) continue; v.fromBufferAttribute(P, i); const tt = v.sub(a).dot(d) / L; if (tt > 0.3 || tt < -0.15) continue;
+        const g = share * (1 - smooth(Math.max(0, tt) / 0.3)); const wu = SW.getComponent(i, k); const give = wu * g; if (give < 1e-3) continue; let slot = -1, low = 1e9; for (let q = 0; q < 4; q++) { const w2 = SW.getComponent(i, q); if (w2 === 0) { slot = q; low = -1; break; } if (q !== k && w2 < low) { low = w2; slot = q; } }
+        if (low > 0 && low > give) continue; if (low > 0) { SW.setComponent(i, k, wu + low); } SW.setComponent(i, k, SW.getComponent(i, k) - give); SI.setComponent(i, slot, hx); SW.setComponent(i, slot, give); }
+      SI.needsUpdate = SW.needsUpdate = true; }
+    HELPERS.push({ c, U, H, rq }); n++; }
+  c._limbHelpers = n; return n; }
+SBX.addLimbHelpers = addLimbHelpers;
 function helpersStep() { for (const x of HELPERS) { if (!x.c.group.visible) continue; x.H.position.copy(x.U.position); x.H.quaternion.copy(x.rq).slerp(x.U.quaternion, 0.5); } }
 SBX.addShoulderHelpers = addShoulderHelpers;
 
 SBX.deformTest = deformTest; SBX.smoothWeights = smoothWeights;
 // the shipped cast gets the same weight polish (measured on Ollo: badly stretched skin edges in stress poses drop ~4x)
-SBX.polishLog = {}; (async () => { await sleep(60); for (const c of CAST.CASTS) { try { SBX.polishLog[c.id] = polishRig(c); try { addShoulderHelpers(c); } catch (e) { console.warn('shoulder helpers', c.id, e); } } catch (e) { console.warn('weights', c.id, e); } await sleep(30); } })();
+SBX.polishLog = {}; (async () => { await sleep(60); for (const c of CAST.CASTS) { if (['spondo', 'rozy', 'meno', 'klora'].includes(c.id)) continue; /* the reference cast is hand-rigged correctly and its stored mouths need its skeleton exactly as built: no automatic re-weighting or extra helper bones */ try { SBX.polishLog[c.id] = polishRig(c); try { addShoulderHelpers(c); } catch (e) { console.warn('shoulder helpers', c.id, e); } try { addLimbHelpers(c); } catch (e) { console.warn('limb helpers', e); } } catch (e) { console.warn('weights', c.id, e); } await sleep(30); } })();
 const restLocal = (c) => (c._rest || (c._rest = RPC.restLocal(c.ch)));
 function blendPoses(c, layers) { // layers: [{q: {bone: Quaternion}, w}] -> c.st.L (only bones the layers name; others back to rest)
   const rest = restLocal(c); const L = c.st.L; const tmp = new THREE.Quaternion();
@@ -1375,7 +1400,7 @@ const KIT = (() => {
     const mesh = new THREE.Mesh(g, mm); mesh.name = full.name; mesh.castShadow = mesh.receiveShadow = true; return mesh; }
   // a rigged, sculpted, animated character from a builder (same API as the shipped characters: RPC.Rig + spec.sculpt)
   async function character(id, builder, o = {}) { if (CAST.CASTS.find((c) => c.id === id)) throw new Error('A character with id "' + id + '" already exists'); RPC.builders[id] = () => builder(RPC); const live = RPC.SCULPT_LIVE; RPC.SCULPT_LIVE = o.quality !== 'draft'; let c; try { c = CAST.addCast(id); } finally { RPC.SCULPT_LIVE = live; } c.group.visible = true;
-    c.mo.grounded = !o.hover; c.mo.gait = !o.hover; if (o.hover) c.ch.locomotion = 'hover'; try { fixArms(c); } catch (e) { console.warn('arms', e); } try { const pr = polishRig(c); if (c.ch._aiMade) { pr.headLock = headLock(c); try { weldSeams(c); } catch (e) { /* ok */ } } c.deform = pr.headLock ? deformTest(c) : (pr.report || deformTest(c)); c.polish = pr; try { addShoulderHelpers(c); } catch (e) { console.warn('shoulder helpers', e); } } catch (e) { console.warn('weights', e); } setIdle(c); SBX.placed.set('cast:' + id, c.group); c.group.userData.sbx = { id: 'cast:' + id, name: c.ch.name, cast: id, solid: false }; refreshOutliner(); return c; }
+    c.mo.grounded = !o.hover; c.mo.gait = !o.hover; if (o.hover) c.ch.locomotion = 'hover'; try { fixArms(c); } catch (e) { console.warn('arms', e); } try { const pr = polishRig(c); if (c.ch._aiMade) { pr.headLock = headLock(c); try { weldSeams(c); } catch (e) { /* ok */ } } c.deform = pr.headLock ? deformTest(c) : (pr.report || deformTest(c)); c.polish = pr; try { addShoulderHelpers(c); } catch (e) { console.warn('shoulder helpers', e); } try { addLimbHelpers(c); } catch (e) { console.warn('limb helpers', e); } } catch (e) { console.warn('weights', e); } setIdle(c); SBX.placed.set('cast:' + id, c.group); c.group.userData.sbx = { id: 'cast:' + id, name: c.ch.name, cast: id, solid: false }; refreshOutliner(); return c; }
   return { canvasTex, procTex, normalTex, mat, sculpt, character, fbm, noise3, P: RPC.sculpt.P, smin: RPC.sculpt.smin, smax: RPC.sculpt.smax, geo: RPC.arcadeGeo, mergeGeometries: BGU.mergeGeometries, RoundedBoxGeometry };
 })();
 SBX.kit = KIT;
