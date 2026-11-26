@@ -67418,7 +67418,9 @@ function speakMelody(x2, sr, text, pr) {
     const want = center * Math.pow(2, tFrame(Math.round(Amap2(ts2) / hop)) / 12);
     sm2 = sm2 ? sm2 * Math.pow(2, Math.max(-1, Math.min(1, 12 * Math.log2(want / sm2) * 0.35)) / 12) : want;
     const own = sr / pa2;
-    return Math.max(Math.pow(2, -7 / 12), Math.min(2, sm2 / own));
+    let rr2 = sm2 / own;
+    if (rr2 > 1.55) rr2 = 1.55 + (rr2 - 1.55) * 0.45;
+    return Math.max(Math.pow(2, -7 / 12), Math.min(1.95, rr2));
   }, mkRnd(Kf2 * 131 + N3), false, pr.tract);
   const hb = +pr.heat || 0;
   if (hb) {

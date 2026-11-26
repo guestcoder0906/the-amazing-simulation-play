@@ -70,7 +70,7 @@
     if (!worker || (state !== 'ready' && !(mum && state === 'loading'))) return Promise.reject(new Error('neural voice not ready'));
     var id = nextId++;
     return new Promise(function (res, rej) {
-      var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) cv.baseF0 = r.f0; else if (cv && cv.targetHz && cv.baseF0 && !cv.calibrating && r && r.outF0 > 40) cv.corr = Math.max(0.6, Math.min(1.7, (cv.corr || 1) * Math.pow(cv.targetHz / r.outF0, 0.6))); /* closed loop: each spoken line's real pitch nudges the next ones onto the design */ } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
+      var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) { cv.baseF0 = r.f0; try { var bf = JSON.parse(localStorage.getItem('nv_basef0') || '{}'); bf[voice] = r.f0; localStorage.setItem('nv_basef0', JSON.stringify(bf)); } catch (e) { /* ok */ } } else if (cv && cv.targetHz && cv.baseF0 && !cv.calibrating && r && r.outF0 > 40) cv.corr = Math.max(0.6, Math.min(1.7, (cv.corr || 1) * Math.pow(cv.targetHz / r.outF0, 0.6))); /* closed loop: each spoken line's real pitch nudges the next ones onto the design */ } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
       worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: mum ? null : (shape || null), device: device,
         mix: cv ? cv.mix || null : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0, fx: cv ? cv.fx || null : null, lang: cv ? cv.lang || null : null, mode: mum ? 'mumble' : null, mumble: mum ? cv.mumble : null });
       setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000);
@@ -186,7 +186,7 @@
       return mpk;
     }
     var voice = 'cv_' + String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24) + '_d' + h.toString(36);
-    CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a', targetHz: d.target_pitch_hz != null ? num(d.target_pitch_hz, 70, 420, 0) : 0, k: pitch };
+    CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a', targetHz: d.target_pitch_hz != null ? num(d.target_pitch_hz, 70, 420, 0) : 0, k: pitch }; /* measured once, kept on this device (no test render every visit) */ try { var bf0 = JSON.parse(localStorage.getItem('nv_basef0') || '{}')[voice]; if (bf0 > 40) CUSTOM_VOICES[voice].baseF0 = bf0; } catch (e) { /* ok */ }
     /* the character's own way of speaking: melody 0 = the model's natural reading, up to 1 = a wildly animated, sing-song delivery
        (accents leap, small words drop, lines end the way their punctuation says) */
     /* how it SPEAKS, from the design: melody (how sing-song) and energy (how hard it pushes). Every designed voice gets the same
