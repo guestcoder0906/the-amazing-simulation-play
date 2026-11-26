@@ -194,7 +194,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
   var GEMINI_COOL = 0; var GEMINI_COOLS = {}; /* per Gemini model: until when it is skipped after a quota / rate limit */ /* Gemini said 'too many requests': until then the quick chain goes straight to the next model instead of waiting */
   var GEMINI_KEY = (function () { try { return localStorage.getItem('sbx_gemini_api_key') || ''; } catch (e) { return ''; } })(); /* your own Gemini key (key button, bottom left): the local server uses it for Gemini */
   function gemHdr(hd) { if (GEMINI_KEY) hd['x-gemini-key'] = GEMINI_KEY; return hd; }
-  var GEMINI_OFF = false; // set when this deployment has no GEMINI_API_KEY: quick tasks then use Claude Haiku 5.5
+  var GEMINI_OFF = !!window.__hostClaude; // set when this deployment has no GEMINI_API_KEY (and always inside the claude.ai artifact, which cannot reach Gemini at all): quick tasks then use Claude, hearing uses the in-browser listener
   var QUICK = function () { return GEMINI_OFF ? HAIKU : GEMINI; };
   var CLAUDE_KEY = (function () { try { return localStorage.getItem('sbx_claude_api_key') || ''; } catch (e) { return ''; } })();
   function claudeHeaders(k) { return { 'x-api-key': k, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true', 'content-type': 'application/json' }; }
@@ -560,8 +560,12 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
   async function localHear(blob, context) {
     var pcm = await toPcm16k(blob);
     var A = await acousticsAsync(pcm, 16000);
-    var w = await listenWorker(), id = LISTEN.n++;
-    var out = await new Promise(function (res, rej) { LISTEN.pend.set(id, { res: res, rej: rej }); w.postMessage({ type: 'listen', id: id, pcm: pcm, speech: A.voicedShare > 0.1 || A.syllPerSec > 0.5, device: navigator.gpu ? 'webgpu' : 'wasm' }, [pcm.buffer]); setTimeout(function () { if (LISTEN.pend.has(id)) { LISTEN.pend.delete(id); rej(new Error('listening timed out')); } }, 60000); });
+    /* inside the claude.ai artifact the Whisper / AudioSet listener cannot load (the page may only fetch from itself), so the sounds are
+       recognised by YAMNet (hosted inside the artifact: 521 sound classes) and the player's own words come from claude.ai's dictation */
+    var out = null;
+    if (!window.__hostClaude) { try { var w = await listenWorker(), id = LISTEN.n++; var pcmL = pcm.slice(0);
+      out = await new Promise(function (res, rej) { LISTEN.pend.set(id, { res: res, rej: rej }); w.postMessage({ type: 'listen', id: id, pcm: pcmL, speech: A.voicedShare > 0.1 || A.syllPerSec > 0.5, device: navigator.gpu ? 'webgpu' : 'wasm' }, [pcmL.buffer]); setTimeout(function () { if (LISTEN.pend.has(id)) { LISTEN.pend.delete(id); rej(new Error('listening timed out')); } }, 60000); }); } catch (e) { out = null; } }
+    if (!out) { try { var yd = await yamDetect(pcm, 16000); out = { text: '', tags: yd.cats.map(function (k) { return { label: k.label, score: k.score }; }) }; } catch (e) { out = { text: '', tags: [] }; } }
     var res = interpret(A, out.text, out.tags || []);
     // best judgement: when Claude is reachable, it reads the measurements + words + sounds and settles emotion / tone
     if (false && PROVIDER === 'claude') { /* off: Claude cannot hear audio; its "I can't hear it" replies were passed to the characters as what they heard */

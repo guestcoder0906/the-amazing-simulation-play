@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # The Amazing Digital Circus - play on your own Mac or Linux computer with your own Claude account.
 # The first time it downloads the game into ~/AmazingDigitalCircus and sets up everything it needs by itself (a private Python if the
-# computer has none, Anthropic's Claude Code) and opens Anthropic's sign-in page; after that it starts straight away (and fetches
-# updates once a week). Ctrl+C or closing the window stops the game.
+# computer has none, Anthropic's Claude Code) and opens Anthropic's sign-in page; after that it starts straight away (every start
+# first checks for a new version). Ctrl+C or closing the window stops the game.
 DIR="$HOME/AmazingDigitalCircus"; GAME="$DIR/game"; STAMP="$DIR/version.txt"
 mkdir -p "$DIR" || exit 1
 # every start checks the newest version of the game and downloads it only when it changed

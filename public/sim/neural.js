@@ -147,7 +147,7 @@
     /* Caine's melody, REWRITTEN per syllable (not just bent): fitted by an automatic search against his reference recording
        (melody error 3.8 semitones for the model's own reading -> 2.0): the first accented word leaps ~13 semitones, later
        accents fade, small words sit low, and "!" lines swoop up at the end */
-    if (showman) pick.melody = { acc1: 19, acc2: 14, decay: 0.75, low: 3.5, endRise: 1, keep: 0.35, decl: 1.2, dyn: 12, vary: 1, stretch: 1.5, squeeze: 0.8, swoop: 0, zig: 0.1, finalYell: 0.3, endDrop: 8, heat: 0.5, glide: 0.13, vib: 0.6 }; /* showman, MELODIC: big leaps joined by long smooth slides (130 ms, sung speech), vibrato on held stressed vowels, steady designed notes (less random wobble), drawn-out stressed vowels, calmer lower line endings */
+    if (showman) pick.melody = { acc1: 15, acc2: 11, /* peaks kept out of the shrill range (still about 6.4 semitones of movement) */ decay: 0.75, low: 3.5, endRise: 1, keep: 0.35, decl: 1.2, dyn: 12, vary: 1, stretch: 1.5, squeeze: 0.8, swoop: 0, zig: 0.1, finalYell: 0.3, endDrop: 8, heat: 0.5, glide: 0.13, vib: 0.6 }; /* showman, MELODIC: big leaps joined by long smooth slides (130 ms, sung speech), vibrato on held stressed vowels, steady designed notes (less random wobble), drawn-out stressed vowels, calmer lower line endings */
     /* deadpan / caught off guard: flatter and slower, but in the SAME voice register as his showman lines (the raw model reading sat
        far below him and sounded like a different person) */
     if (showman) { pick.deadMelody = { acc1: 4, acc2: 3, decay: 0.9, low: 1.5, endRise: 0, keep: 0.4, decl: 1.5, dyn: 4, vary: 0.5, stretch: 1.15, squeeze: 0.95, glide: 0.1, endDrop: 2 }; pick.deadLift = 1.2; }
