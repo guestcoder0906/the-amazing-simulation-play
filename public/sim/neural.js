@@ -147,7 +147,7 @@
     /* Caine's melody, REWRITTEN per syllable (not just bent): fitted by an automatic search against his reference recording
        (melody error 3.8 semitones for the model's own reading -> 2.0): the first accented word leaps ~13 semitones, later
        accents fade, small words sit low, and "!" lines swoop up at the end */
-    if (showman) pick.melody = { acc1: 19, acc2: 14, decay: 0.75, low: 3.5, endRise: 10, keep: 0.45, decl: 1.2, dyn: 12, vary: 1.5, stretch: 1.45, squeeze: 0.8, swoop: 0, zig: 0.15, finalYell: 1.0, heat: 0.5, glide: 0.09, vib: 0.4 }; /* showman, MELODIC: big leaps that glide smoothly from note to note (90 ms slides, like singing speech), a light vibrato on long stressed vowels, steadier notes (less random wobble), yelled exclamations, drawn-out stressed vowels, volume punches */
+    if (showman) pick.melody = { acc1: 19, acc2: 14, decay: 0.75, low: 3.5, endRise: 1, keep: 0.45, decl: 1.2, dyn: 12, vary: 1.5, stretch: 1.45, squeeze: 0.8, swoop: 0, zig: 0.15, finalYell: 0.3, endDrop: 8, heat: 0.5, glide: 0.09, vib: 0.4 }; /* showman, MELODIC: big leaps that glide smoothly from note to note (90 ms slides, like singing speech), a light vibrato on long stressed vowels, steadier notes (less random wobble), yelled exclamations, drawn-out stressed vowels, volume punches */
     used.set(key, { spec: spec, pick: pick });
     return pick;
   }

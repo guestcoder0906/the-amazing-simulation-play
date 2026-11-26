@@ -67344,6 +67344,7 @@ function speakMelody(x2, sr, text, pr) {
       for (let k4 = la2; k4 < Kf2; k4++) tgt[k4] = Math.max(tgt[k4], yv);
     }
   }
+  if (pr.endDrop && Kf2 > 3 && end !== ",") for (let k4 = Math.floor(Kf2 * 0.7); k4 < Kf2; k4++) tgt[k4] -= pr.endDrop * Math.min(1, (k4 - Kf2 * 0.7 + 1) / (Kf2 * 0.3));
   const L2 = Kf2 - 1;
   if (end === "!") {
     tgt[L2] = Math.max(tgt[L2], 0);
@@ -67444,7 +67445,8 @@ function speakMelody(x2, sr, text, pr) {
     let g3 = 1;
     for (let i3 = 0; i3 < Lo; i3++) {
       const fr2 = Math.min(nF - 1, Math.floor(Amap3(i3) / hop)), k4 = segOf[fr2];
-      const want = Math.pow(10, dyn * Math.max(-1, Math.min(1.2, (tgt[k4] + ramp[k4] * 0.5) / Math.max(1, acc1))) / 20);
+      const want0 = Math.pow(10, dyn * Math.max(-0.45, Math.min(1.2, (tgt[k4] + ramp[k4] * 0.5) / Math.max(1, acc1))) / 20);
+      const want = k4 >= Kf2 * 0.7 ? Math.max(want0, 0.9) : want0;
       g3 += (want - g3) * 2e-3;
       y3[i3] *= g3;
     }
