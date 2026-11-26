@@ -477,8 +477,22 @@ function deformTest(c, opt = {}) {
   const keep = { st: c.st, p: c.group.position.clone(), r: c.group.rotation.clone(), s: c.group.scale.clone() }; c.group.position.set(0, 0, 0); c.group.rotation.set(0, 0, 0); c.group.scale.set(1, 1, 1);
   const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(); const pos = (v, out) => { out.fromBufferAttribute(P, v); body.applyBoneTransform(v, out); return out; };
   const results = []; const perBone = new Map();
+  /* FAST AND EXACT: bending one bone moves its whole branch rigidly, so an edge whose two ends both follow only that branch (or
+     both ignore it) keeps exactly its length in the plain rest pose. Those edges are measured ONCE; each bend re-measures only the
+     edges that straddle the branch. Same numbers as measuring every edge for every bend, many times less work (no more freezes). */
+  const SI = g.attributes.skinIndex, SW = g.attributes.skinWeight, NB = ch.bones.length;
+  const kids = Array.from({ length: NB }, () => []); ch.bones.forEach((b, i) => { if (b.parent >= 0 && kids[b.parent]) kids[b.parent].push(i); });
+  const culpritsOf = (a, into) => { for (let k = 0; k < 4; k++) { const bi = SI.getComponent(a, k), w = SW.getComponent(a, k); if (w > 0.15) into.set(bi, (into.get(bi) || 0) + 1); } };
+  const used = E.map((_, i) => rest[i] >= med * 0.3); const nUsed = used.filter(Boolean).length;
+  { const st0 = RPC.newState(ch); c.st = st0; c.syncToBones(true); c.group.updateMatrixWorld(true); body.skeleton.update(); }
+  const baseBad = E.map(([a, b], i) => { if (!used[i]) return false; const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; return r > 2.0 || r < 0.35; });
+  const subCache = new Map(); const subOf = (bone) => { let s = subCache.get(bone); if (s) return s; s = new Uint8Array(NB); const q = [bone]; while (q.length) { const x = q.pop(); if (s[x]) continue; s[x] = 1; q.push(...kids[x]); } subCache.set(bone, s); return s; };
+  const fracCache = new Map(); const fracOf = (bone) => { let f = fracCache.get(bone); if (f) return f; const s = subOf(bone); f = new Map(); const fr = (v) => { let x = f.get(v); if (x !== undefined) return x; x = 0; for (let k = 0; k < 4; k++) { const w = SW.getComponent(v, k); if (w > 0 && s[SI.getComponent(v, k)]) x += w; } f.set(v, x); return x; }; f.fr = fr; fracCache.set(bone, f); return f; };
   for (const T of stressTests(c)) { const st = RPC.newState(ch); st.L[T.bone].q = T.q.toArray(); c.st = st; c.syncToBones(true); c.group.updateMatrixWorld(true); body.skeleton.update();
-    let bad = 0, n = 0; const culprits = new Map(); E.forEach(([a, b], i) => { if (rest[i] < med * 0.3) return; n++; const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; if (r > 2.0 || r < 0.35) { bad++; for (let k = 0; k < 4; k++) { const bi = body.geometry.attributes.skinIndex.getComponent(a, k), w = body.geometry.attributes.skinWeight.getComponent(a, k); if (w > 0.15) culprits.set(bi, (culprits.get(bi) || 0) + 1); } } });
+    const fr = fracOf(T.bone).fr; let bad = 0; const n = nUsed; const culprits = new Map();
+    E.forEach(([a, b], i) => { if (!used[i]) return; const fa = fr(a), fb = fr(b); const rigid = (fa < 1e-6 && fb < 1e-6) || (fa > 1 - 1e-6 && fb > 1 - 1e-6);
+      const isBad = rigid ? baseBad[i] : (() => { const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; return r > 2.0 || r < 0.35; })();
+      if (isBad) { bad++; culpritsOf(a, culprits); } });
     const pct = n ? bad / n * 100 : 0; results.push({ test: T.name, bone: T.bone, pct }); perBone.set(T.bone, Math.max(perBone.get(T.bone) || 0, pct)); T.culprits = culprits; }
   c.st = keep.st; c.syncToBones(true); c.group.position.copy(keep.p); c.group.rotation.copy(keep.r); c.group.scale.copy(keep.s); c.group.updateMatrixWorld(true);
   const lim = opt.limit ?? 1.0; const failing = results.filter((r) => r.pct > lim).sort((a, b) => b.pct - a.pct);
