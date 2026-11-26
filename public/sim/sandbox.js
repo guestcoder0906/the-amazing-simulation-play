@@ -2628,9 +2628,7 @@ async function runAgentInner(userText, opt = {}) { AGENT.saidFirst = false; quic
     if (AC.signal.aborted) break; const step = { calls: 0, mutCalls: 0 }; let text = '';
     const sayEl = feed('say', '…');
     /* the builder's words are shown from their START (a long plan used to lose its beginning: only the last 900 characters were kept) */
-    const showSay = (s) => { s = String(s || ''); return s.length <= 7000 ? s : s.slice(0, 4200) + '
-…
-' + s.slice(-2600); };
+    const showSay = (s) => { s = String(s || ''); return s.length <= 7000 ? s : s.slice(0, 4200) + ' … ' + s.slice(-2600); };
     try {
       const CFG = agentCfg(); modelEl.textContent = labelNow(CFG);
       const res = await SAMPLE([...memoryMsgs(), ...AGENT.history.slice(-HIST_KEEP), { role: 'user', content: msg }], { purpose: 'build', system: SYSTEM(toyMode), /* the instructions and every reference live in the system prompt: always there, cached, never re-sent as messages */ tools: cap16(guardCreate(makeTools(step)), 'builder'), ...(imgs.length ? { images: imgs } : {}), model: CFG.model,  /* characters think at medium, everything else at low */ modelTier: CFG.model === OPUS ? 'complex' : 'default', signal: AC.signal, onText: ({ text: t }) => { sayEl.textContent = showSay(t); try { sayEl.scrollTop = sayEl.scrollHeight; } catch (e) { /* ok */ } progStep.textContent = 'writing'; try { const pm = String(t).match(/PLAN:[\s\S]*?(?=\n\s*(?:CHECKLIST|CONTINUE|DONE|SAY):|$)/i); if (pm && AGENT.job && pm[0].length > 20) AGENT.job.plan = pm[0].slice(0, 6000); } catch (e) { /* ok */ } } });
