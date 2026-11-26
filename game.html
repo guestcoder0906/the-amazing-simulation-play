@@ -193,7 +193,9 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
 
   var GEMINI_COOL = 0; var GEMINI_COOLS = {}; /* per Gemini model: until when it is skipped after a quota / rate limit */ /* Gemini said 'too many requests': until then the quick chain goes straight to the next model instead of waiting */
   var GEMINI_KEY = (function () { try { return localStorage.getItem('sbx_gemini_api_key') || ''; } catch (e) { return ''; } })(); /* your own Gemini key (key button, bottom left): the local server uses it for Gemini */
-  function gemHdr(hd) { if (GEMINI_KEY) hd['x-gemini-key'] = GEMINI_KEY; return hd; }
+  /* on your own computer the Gemini key can live on the computer (asked when the game starts): the page then listens with Gemini without holding the key */
+  if (!GEMINI_KEY && window.SIM_GEMINI_SERVER) GEMINI_KEY = 'computer';
+  function gemHdr(hd) { if (GEMINI_KEY && GEMINI_KEY !== 'computer') hd['x-gemini-key'] = GEMINI_KEY; return hd; }
   var GEMINI_OFF = !!window.__hostClaude; // set when this deployment has no GEMINI_API_KEY (and always inside the claude.ai artifact, which cannot reach Gemini at all): quick tasks then use Claude, hearing uses the in-browser listener
   var QUICK = function () { return GEMINI_OFF ? HAIKU : GEMINI; };
   var CLAUDE_KEY = (function () { try { return localStorage.getItem('sbx_claude_api_key') || ''; } catch (e) { return ''; } })();
