@@ -581,6 +581,10 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
   /* Google MediaPipe Audio Classifier with YAMNet (521 sound classes: speech, music, animals, effects, silence...): runs free in this
      browser, in real time. Nothing goes to Gemini or Claude unless YAMNet hears something real first. */
   var MP_VER = '1.2.2', YAM = { p: null, failUntil: 0 };
+  /* MediaPipe's wasm prints harmless start-up notes to the console as errors / warnings ("Created TensorFlow Lite XNNPACK delegate",
+     "Feedback manager requires a model with a single signature"): they are not problems, so they are dropped */
+  (function quietMediaPipe() { if (console.__mpQuiet) return; console.__mpQuiet = true; var rx = /XNNPACK delegate|inference_feedback_manager|Feedback manager requires a model|Disabling support for feedback tensors/;
+    ['error', 'warn', 'info', 'log'].forEach(function (k) { var o = console[k]; if (typeof o !== 'function') return; console[k] = function () { try { for (var i = 0; i < arguments.length; i++) if (rx.test(String(arguments[i]))) return; } catch (e) { /* ok */ } return o.apply(console, arguments); }; }); })();
   function yamnet() {
     if (YAM.p) return YAM.p;
     if (Date.now() < YAM.failUntil) return Promise.reject(new Error('YAMNet unavailable'));
