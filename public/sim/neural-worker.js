@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __require = /* @__PURE__ */ ((x2) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x2, {
   get: (a2, b3) => (typeof require !== "undefined" ? require : a2)[b3]
 }) : x2)(function(x2) {
@@ -34,7 +33,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // (disabled):path
 var require_path = __commonJS({
@@ -2239,8 +2237,8 @@ var Ia = U(() => {
       return typeof wasmOffsetConverter < "u";
     }
     class pn {
+      name = "ExitStatus";
       constructor(l2) {
-        __publicField(this, "name", "ExitStatus");
         this.message = `Program terminated with exit(${l2})`, this.status = l2;
       }
     }
@@ -2570,7 +2568,7 @@ var Ia = U(() => {
       }
       return h3;
     }, Dc = (s3, l2, h3) => {
-      if (h3 ?? (h3 = 2147483647), 2 > h3) return 0;
+      if (h3 ??= 2147483647, 2 > h3) return 0;
       var y3 = l2;
       h3 = (h3 -= 2) < 2 * s3.length ? h3 / 2 : s3.length;
       for (var w3 = 0; w3 < h3; ++w3) {
@@ -2586,7 +2584,7 @@ var Ia = U(() => {
       }
       return y3;
     }, Uc = (s3, l2, h3) => {
-      if (l2 >>>= 0, h3 ?? (h3 = 2147483647), 4 > h3) return 0;
+      if (l2 >>>= 0, h3 ??= 2147483647, 4 > h3) return 0;
       var y3 = l2;
       h3 = y3 + h3 - 4;
       for (var w3 = 0; w3 < s3.length; ++w3) {
@@ -3022,7 +3020,7 @@ var Ia = U(() => {
           y3(s3(A3, w3));
         };
       });
-      kt ?? (kt = n2.locateFile ? n2.locateFile ? n2.locateFile("ort-wasm-simd-threaded.jsep.wasm", _3) : _3 + "ort-wasm-simd-threaded.jsep.wasm" : new URL("ort-wasm-simd-threaded.jsep.wasm", import.meta.url).href);
+      kt ??= n2.locateFile ? n2.locateFile ? n2.locateFile("ort-wasm-simd-threaded.jsep.wasm", _3) : _3 + "ort-wasm-simd-threaded.jsep.wasm" : new URL("ort-wasm-simd-threaded.jsep.wasm", import.meta.url).href;
       try {
         var h3 = await async function(y3) {
           var w3 = kt;
@@ -11686,95 +11684,84 @@ var __webpack_modules__ = {
         return tokens;
       }
       var Statement = class {
-        constructor() {
-          __publicField(this, "type", "Statement");
-        }
+        type = "Statement";
       };
       var Program = class extends Statement {
         constructor(body) {
           super();
-          __publicField(this, "type", "Program");
           this.body = body;
         }
+        type = "Program";
       };
       var If2 = class extends Statement {
         constructor(test, body, alternate) {
           super();
-          __publicField(this, "type", "If");
           this.test = test;
           this.body = body;
           this.alternate = alternate;
         }
+        type = "If";
       };
       var For = class extends Statement {
         constructor(loopvar, iterable, body, defaultBlock) {
           super();
-          __publicField(this, "type", "For");
           this.loopvar = loopvar;
           this.iterable = iterable;
           this.body = body;
           this.defaultBlock = defaultBlock;
         }
+        type = "For";
       };
       var Break = class extends Statement {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "Break");
-        }
+        type = "Break";
       };
       var Continue = class extends Statement {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "Continue");
-        }
+        type = "Continue";
       };
       var SetStatement = class extends Statement {
         constructor(assignee, value, body) {
           super();
-          __publicField(this, "type", "Set");
           this.assignee = assignee;
           this.value = value;
           this.body = body;
         }
+        type = "Set";
       };
       var Macro = class extends Statement {
         constructor(name, args, body) {
           super();
-          __publicField(this, "type", "Macro");
           this.name = name;
           this.args = args;
           this.body = body;
         }
+        type = "Macro";
       };
       var Comment = class extends Statement {
         constructor(value) {
           super();
-          __publicField(this, "type", "Comment");
           this.value = value;
         }
+        type = "Comment";
       };
       var Expression = class extends Statement {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "Expression");
-        }
+        type = "Expression";
       };
       var MemberExpression = class extends Expression {
         constructor(object, property, computed) {
           super();
-          __publicField(this, "type", "MemberExpression");
           this.object = object;
           this.property = property;
           this.computed = computed;
         }
+        type = "MemberExpression";
       };
       var CallExpression = class extends Expression {
         constructor(callee, args) {
           super();
-          __publicField(this, "type", "CallExpression");
           this.callee = callee;
           this.args = args;
         }
+        type = "CallExpression";
       };
       var Identifier = class extends Expression {
         /**
@@ -11782,144 +11769,126 @@ var __webpack_modules__ = {
          */
         constructor(value) {
           super();
-          __publicField(this, "type", "Identifier");
           this.value = value;
         }
+        type = "Identifier";
       };
       var Literal = class extends Expression {
         constructor(value) {
           super();
-          __publicField(this, "type", "Literal");
           this.value = value;
         }
+        type = "Literal";
       };
       var IntegerLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "IntegerLiteral");
-        }
+        type = "IntegerLiteral";
       };
       var FloatLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "FloatLiteral");
-        }
+        type = "FloatLiteral";
       };
       var StringLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "StringLiteral");
-        }
+        type = "StringLiteral";
       };
       var ArrayLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "ArrayLiteral");
-        }
+        type = "ArrayLiteral";
       };
       var TupleLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "TupleLiteral");
-        }
+        type = "TupleLiteral";
       };
       var ObjectLiteral = class extends Literal {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "ObjectLiteral");
-        }
+        type = "ObjectLiteral";
       };
       var BinaryExpression = class extends Expression {
         constructor(operator, left, right) {
           super();
-          __publicField(this, "type", "BinaryExpression");
           this.operator = operator;
           this.left = left;
           this.right = right;
         }
+        type = "BinaryExpression";
       };
       var FilterExpression = class extends Expression {
         constructor(operand, filter) {
           super();
-          __publicField(this, "type", "FilterExpression");
           this.operand = operand;
           this.filter = filter;
         }
+        type = "FilterExpression";
       };
       var FilterStatement = class extends Statement {
         constructor(filter, body) {
           super();
-          __publicField(this, "type", "FilterStatement");
           this.filter = filter;
           this.body = body;
         }
+        type = "FilterStatement";
       };
       var SelectExpression = class extends Expression {
         constructor(lhs, test) {
           super();
-          __publicField(this, "type", "SelectExpression");
           this.lhs = lhs;
           this.test = test;
         }
+        type = "SelectExpression";
       };
       var TestExpression = class extends Expression {
         constructor(operand, negate, test) {
           super();
-          __publicField(this, "type", "TestExpression");
           this.operand = operand;
           this.negate = negate;
           this.test = test;
         }
+        type = "TestExpression";
       };
       var UnaryExpression = class extends Expression {
         constructor(operator, argument) {
           super();
-          __publicField(this, "type", "UnaryExpression");
           this.operator = operator;
           this.argument = argument;
         }
+        type = "UnaryExpression";
       };
       var SliceExpression = class extends Expression {
         constructor(start = void 0, stop = void 0, step = void 0) {
           super();
-          __publicField(this, "type", "SliceExpression");
           this.start = start;
           this.stop = stop;
           this.step = step;
         }
+        type = "SliceExpression";
       };
       var KeywordArgumentExpression = class extends Expression {
         constructor(key, value) {
           super();
-          __publicField(this, "type", "KeywordArgumentExpression");
           this.key = key;
           this.value = value;
         }
+        type = "KeywordArgumentExpression";
       };
       var SpreadExpression = class extends Expression {
         constructor(argument) {
           super();
-          __publicField(this, "type", "SpreadExpression");
           this.argument = argument;
         }
+        type = "SpreadExpression";
       };
       var CallStatement = class extends Statement {
         constructor(call, callerArgs, body) {
           super();
-          __publicField(this, "type", "CallStatement");
           this.call = call;
           this.callerArgs = callerArgs;
           this.body = body;
         }
+        type = "CallStatement";
       };
       var Ternary = class extends Expression {
         constructor(condition, trueExpr, falseExpr) {
           super();
-          __publicField(this, "type", "Ternary");
           this.condition = condition;
           this.trueExpr = trueExpr;
           this.falseExpr = falseExpr;
         }
+        type = "Ternary";
       };
       function parse(tokens) {
         const program = new Program([]);
@@ -12429,11 +12398,11 @@ var __webpack_modules__ = {
       function slice(array, start, stop, step = 1) {
         const direction = Math.sign(step);
         if (direction >= 0) {
-          start = (start ?? (start = 0)) < 0 ? Math.max(array.length + start, 0) : Math.min(start, array.length);
-          stop = (stop ?? (stop = array.length)) < 0 ? Math.max(array.length + stop, 0) : Math.min(stop, array.length);
+          start = (start ??= 0) < 0 ? Math.max(array.length + start, 0) : Math.min(start, array.length);
+          stop = (stop ??= array.length) < 0 ? Math.max(array.length + stop, 0) : Math.min(stop, array.length);
         } else {
-          start = (start ?? (start = array.length - 1)) < 0 ? Math.max(array.length + start, -1) : Math.min(start, array.length - 1);
-          stop = (stop ?? (stop = -1)) < -1 ? Math.max(array.length + stop, -1) : Math.min(stop, array.length - 1);
+          start = (start ??= array.length - 1) < 0 ? Math.max(array.length + start, -1) : Math.min(start, array.length - 1);
+          stop = (stop ??= -1) < -1 ? Math.max(array.length + stop, -1) : Math.min(stop, array.length - 1);
         }
         const result = [];
         for (let i3 = start; direction * i3 < direction * stop; i3 += step) {
@@ -12495,16 +12464,16 @@ var __webpack_modules__ = {
       var ContinueControl = class extends Error {
       };
       var RuntimeValue = class {
+        type = "RuntimeValue";
+        value;
+        /**
+         * A collection of built-in functions for this type.
+         */
+        builtins = /* @__PURE__ */ new Map();
         /**
          * Creates a new RuntimeValue.
          */
         constructor(value = void 0) {
-          __publicField(this, "type", "RuntimeValue");
-          __publicField(this, "value");
-          /**
-           * A collection of built-in functions for this type.
-           */
-          __publicField(this, "builtins", /* @__PURE__ */ new Map());
           this.value = value;
         }
         /**
@@ -12520,184 +12489,172 @@ var __webpack_modules__ = {
         }
       };
       var IntegerValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "IntegerValue");
-        }
+        type = "IntegerValue";
       };
       var FloatValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "FloatValue");
-        }
+        type = "FloatValue";
         toString() {
           return this.value % 1 === 0 ? this.value.toFixed(1) : this.value.toString();
         }
       };
       var StringValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "StringValue");
-          __publicField(this, "builtins", /* @__PURE__ */ new Map([
-            [
-              "upper",
-              new FunctionValue(() => {
-                return new StringValue(this.value.toUpperCase());
-              })
-            ],
-            [
-              "lower",
-              new FunctionValue(() => {
-                return new StringValue(this.value.toLowerCase());
-              })
-            ],
-            [
-              "strip",
-              new FunctionValue(() => {
-                return new StringValue(this.value.trim());
-              })
-            ],
-            [
-              "title",
-              new FunctionValue(() => {
-                return new StringValue(titleCase(this.value));
-              })
-            ],
-            [
-              "capitalize",
-              new FunctionValue(() => {
-                return new StringValue(this.value.charAt(0).toUpperCase() + this.value.slice(1));
-              })
-            ],
-            ["length", new IntegerValue(this.value.length)],
-            [
-              "rstrip",
-              new FunctionValue(() => {
-                return new StringValue(this.value.trimEnd());
-              })
-            ],
-            [
-              "lstrip",
-              new FunctionValue(() => {
-                return new StringValue(this.value.trimStart());
-              })
-            ],
-            [
-              "startswith",
-              new FunctionValue((args) => {
-                if (args.length === 0) {
-                  throw new Error("startswith() requires at least one argument");
-                }
-                const pattern = args[0];
-                if (pattern instanceof StringValue) {
-                  return new BooleanValue(this.value.startsWith(pattern.value));
-                } else if (pattern instanceof ArrayValue) {
-                  for (const item of pattern.value) {
-                    if (!(item instanceof StringValue)) {
-                      throw new Error("startswith() tuple elements must be strings");
-                    }
-                    if (this.value.startsWith(item.value)) {
-                      return new BooleanValue(true);
-                    }
+        type = "StringValue";
+        builtins = /* @__PURE__ */ new Map([
+          [
+            "upper",
+            new FunctionValue(() => {
+              return new StringValue(this.value.toUpperCase());
+            })
+          ],
+          [
+            "lower",
+            new FunctionValue(() => {
+              return new StringValue(this.value.toLowerCase());
+            })
+          ],
+          [
+            "strip",
+            new FunctionValue(() => {
+              return new StringValue(this.value.trim());
+            })
+          ],
+          [
+            "title",
+            new FunctionValue(() => {
+              return new StringValue(titleCase(this.value));
+            })
+          ],
+          [
+            "capitalize",
+            new FunctionValue(() => {
+              return new StringValue(this.value.charAt(0).toUpperCase() + this.value.slice(1));
+            })
+          ],
+          ["length", new IntegerValue(this.value.length)],
+          [
+            "rstrip",
+            new FunctionValue(() => {
+              return new StringValue(this.value.trimEnd());
+            })
+          ],
+          [
+            "lstrip",
+            new FunctionValue(() => {
+              return new StringValue(this.value.trimStart());
+            })
+          ],
+          [
+            "startswith",
+            new FunctionValue((args) => {
+              if (args.length === 0) {
+                throw new Error("startswith() requires at least one argument");
+              }
+              const pattern = args[0];
+              if (pattern instanceof StringValue) {
+                return new BooleanValue(this.value.startsWith(pattern.value));
+              } else if (pattern instanceof ArrayValue) {
+                for (const item of pattern.value) {
+                  if (!(item instanceof StringValue)) {
+                    throw new Error("startswith() tuple elements must be strings");
                   }
-                  return new BooleanValue(false);
-                }
-                throw new Error("startswith() argument must be a string or tuple of strings");
-              })
-            ],
-            [
-              "endswith",
-              new FunctionValue((args) => {
-                if (args.length === 0) {
-                  throw new Error("endswith() requires at least one argument");
-                }
-                const pattern = args[0];
-                if (pattern instanceof StringValue) {
-                  return new BooleanValue(this.value.endsWith(pattern.value));
-                } else if (pattern instanceof ArrayValue) {
-                  for (const item of pattern.value) {
-                    if (!(item instanceof StringValue)) {
-                      throw new Error("endswith() tuple elements must be strings");
-                    }
-                    if (this.value.endsWith(item.value)) {
-                      return new BooleanValue(true);
-                    }
+                  if (this.value.startsWith(item.value)) {
+                    return new BooleanValue(true);
                   }
-                  return new BooleanValue(false);
                 }
-                throw new Error("endswith() argument must be a string or tuple of strings");
-              })
-            ],
-            [
-              "split",
-              // follows Python's `str.split(sep=None, maxsplit=-1)` function behavior
-              // https://docs.python.org/3.13/library/stdtypes.html#str.split
-              new FunctionValue((args) => {
-                const sep = args[0] ?? new NullValue();
-                if (!(sep instanceof StringValue || sep instanceof NullValue)) {
-                  throw new Error("sep argument must be a string or null");
-                }
-                const maxsplit = args[1] ?? new IntegerValue(-1);
-                if (!(maxsplit instanceof IntegerValue)) {
-                  throw new Error("maxsplit argument must be a number");
-                }
-                let result = [];
-                if (sep instanceof NullValue) {
-                  const text = this.value.trimStart();
-                  for (const { 0: match, index } of text.matchAll(/\S+/g)) {
-                    if (maxsplit.value !== -1 && result.length >= maxsplit.value && index !== void 0) {
-                      result.push(match + text.slice(index + match.length));
-                      break;
-                    }
-                    result.push(match);
+                return new BooleanValue(false);
+              }
+              throw new Error("startswith() argument must be a string or tuple of strings");
+            })
+          ],
+          [
+            "endswith",
+            new FunctionValue((args) => {
+              if (args.length === 0) {
+                throw new Error("endswith() requires at least one argument");
+              }
+              const pattern = args[0];
+              if (pattern instanceof StringValue) {
+                return new BooleanValue(this.value.endsWith(pattern.value));
+              } else if (pattern instanceof ArrayValue) {
+                for (const item of pattern.value) {
+                  if (!(item instanceof StringValue)) {
+                    throw new Error("endswith() tuple elements must be strings");
                   }
+                  if (this.value.endsWith(item.value)) {
+                    return new BooleanValue(true);
+                  }
+                }
+                return new BooleanValue(false);
+              }
+              throw new Error("endswith() argument must be a string or tuple of strings");
+            })
+          ],
+          [
+            "split",
+            // follows Python's `str.split(sep=None, maxsplit=-1)` function behavior
+            // https://docs.python.org/3.13/library/stdtypes.html#str.split
+            new FunctionValue((args) => {
+              const sep = args[0] ?? new NullValue();
+              if (!(sep instanceof StringValue || sep instanceof NullValue)) {
+                throw new Error("sep argument must be a string or null");
+              }
+              const maxsplit = args[1] ?? new IntegerValue(-1);
+              if (!(maxsplit instanceof IntegerValue)) {
+                throw new Error("maxsplit argument must be a number");
+              }
+              let result = [];
+              if (sep instanceof NullValue) {
+                const text = this.value.trimStart();
+                for (const { 0: match, index } of text.matchAll(/\S+/g)) {
+                  if (maxsplit.value !== -1 && result.length >= maxsplit.value && index !== void 0) {
+                    result.push(match + text.slice(index + match.length));
+                    break;
+                  }
+                  result.push(match);
+                }
+              } else {
+                if (sep.value === "") {
+                  throw new Error("empty separator");
+                }
+                result = this.value.split(sep.value);
+                if (maxsplit.value !== -1 && result.length > maxsplit.value) {
+                  result.push(result.splice(maxsplit.value).join(sep.value));
+                }
+              }
+              return new ArrayValue(result.map((part) => new StringValue(part)));
+            })
+          ],
+          [
+            "replace",
+            new FunctionValue((args) => {
+              if (args.length < 2) {
+                throw new Error("replace() requires at least two arguments");
+              }
+              const oldValue = args[0];
+              const newValue = args[1];
+              if (!(oldValue instanceof StringValue && newValue instanceof StringValue)) {
+                throw new Error("replace() arguments must be strings");
+              }
+              let count;
+              if (args.length > 2) {
+                if (args[2].type === "KeywordArgumentsValue") {
+                  count = args[2].value.get("count") ?? new NullValue();
                 } else {
-                  if (sep.value === "") {
-                    throw new Error("empty separator");
-                  }
-                  result = this.value.split(sep.value);
-                  if (maxsplit.value !== -1 && result.length > maxsplit.value) {
-                    result.push(result.splice(maxsplit.value).join(sep.value));
-                  }
+                  count = args[2];
                 }
-                return new ArrayValue(result.map((part) => new StringValue(part)));
-              })
-            ],
-            [
-              "replace",
-              new FunctionValue((args) => {
-                if (args.length < 2) {
-                  throw new Error("replace() requires at least two arguments");
-                }
-                const oldValue = args[0];
-                const newValue = args[1];
-                if (!(oldValue instanceof StringValue && newValue instanceof StringValue)) {
-                  throw new Error("replace() arguments must be strings");
-                }
-                let count;
-                if (args.length > 2) {
-                  if (args[2].type === "KeywordArgumentsValue") {
-                    count = args[2].value.get("count") ?? new NullValue();
-                  } else {
-                    count = args[2];
-                  }
-                } else {
-                  count = new NullValue();
-                }
-                if (!(count instanceof IntegerValue || count instanceof NullValue)) {
-                  throw new Error("replace() count argument must be a number or null");
-                }
-                return new StringValue(replace(this.value, oldValue.value, newValue.value, count.value));
-              })
-            ]
-          ]));
-        }
+              } else {
+                count = new NullValue();
+              }
+              if (!(count instanceof IntegerValue || count instanceof NullValue)) {
+                throw new Error("replace() count argument must be a number or null");
+              }
+              return new StringValue(replace(this.value, oldValue.value, newValue.value, count.value));
+            })
+          ]
+        ]);
       };
       var BooleanValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "BooleanValue");
-        }
+        type = "BooleanValue";
       };
       function toJSON(input, indent, depth, convertUndefinedToNull = true) {
         const currentDepth = depth ?? 0;
@@ -12734,60 +12691,7 @@ var __webpack_modules__ = {
         }
       }
       var ObjectValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "ObjectValue");
-          __publicField(this, "builtins", /* @__PURE__ */ new Map([
-            [
-              "get",
-              new FunctionValue(([key, defaultValue]) => {
-                if (!(key instanceof StringValue)) {
-                  throw new Error(`Object key must be a string: got ${key.type}`);
-                }
-                return this.value.get(key.value) ?? defaultValue ?? new NullValue();
-              })
-            ],
-            ["items", new FunctionValue(() => this.items())],
-            ["keys", new FunctionValue(() => this.keys())],
-            ["values", new FunctionValue(() => this.values())],
-            [
-              "dictsort",
-              new FunctionValue((args) => {
-                let kwargs = /* @__PURE__ */ new Map();
-                const positionalArgs = args.filter((arg) => {
-                  if (arg instanceof KeywordArgumentsValue) {
-                    kwargs = arg.value;
-                    return false;
-                  }
-                  return true;
-                });
-                const caseSensitive = positionalArgs.at(0) ?? kwargs.get("case_sensitive") ?? new BooleanValue(false);
-                if (!(caseSensitive instanceof BooleanValue)) {
-                  throw new Error("case_sensitive must be a boolean");
-                }
-                const by = positionalArgs.at(1) ?? kwargs.get("by") ?? new StringValue("key");
-                if (!(by instanceof StringValue)) {
-                  throw new Error("by must be a string");
-                }
-                if (!["key", "value"].includes(by.value)) {
-                  throw new Error("by must be either 'key' or 'value'");
-                }
-                const reverse = positionalArgs.at(2) ?? kwargs.get("reverse") ?? new BooleanValue(false);
-                if (!(reverse instanceof BooleanValue)) {
-                  throw new Error("reverse must be a boolean");
-                }
-                const items = Array.from(this.value.entries()).map(([key, value]) => new ArrayValue([new StringValue(key), value])).sort((a2, b3) => {
-                  const index = by.value === "key" ? 0 : 1;
-                  const aVal = a2.value[index];
-                  const bVal = b3.value[index];
-                  const result = compareRuntimeValues(aVal, bVal, caseSensitive.value);
-                  return reverse.value ? -result : result;
-                });
-                return new ArrayValue(items);
-              })
-            ]
-          ]));
-        }
+        type = "ObjectValue";
         /**
          * NOTE: necessary to override since all JavaScript arrays are considered truthy,
          * while only non-empty Python arrays are consider truthy.
@@ -12799,6 +12703,56 @@ var __webpack_modules__ = {
         __bool__() {
           return new BooleanValue(this.value.size > 0);
         }
+        builtins = /* @__PURE__ */ new Map([
+          [
+            "get",
+            new FunctionValue(([key, defaultValue]) => {
+              if (!(key instanceof StringValue)) {
+                throw new Error(`Object key must be a string: got ${key.type}`);
+              }
+              return this.value.get(key.value) ?? defaultValue ?? new NullValue();
+            })
+          ],
+          ["items", new FunctionValue(() => this.items())],
+          ["keys", new FunctionValue(() => this.keys())],
+          ["values", new FunctionValue(() => this.values())],
+          [
+            "dictsort",
+            new FunctionValue((args) => {
+              let kwargs = /* @__PURE__ */ new Map();
+              const positionalArgs = args.filter((arg) => {
+                if (arg instanceof KeywordArgumentsValue) {
+                  kwargs = arg.value;
+                  return false;
+                }
+                return true;
+              });
+              const caseSensitive = positionalArgs.at(0) ?? kwargs.get("case_sensitive") ?? new BooleanValue(false);
+              if (!(caseSensitive instanceof BooleanValue)) {
+                throw new Error("case_sensitive must be a boolean");
+              }
+              const by = positionalArgs.at(1) ?? kwargs.get("by") ?? new StringValue("key");
+              if (!(by instanceof StringValue)) {
+                throw new Error("by must be a string");
+              }
+              if (!["key", "value"].includes(by.value)) {
+                throw new Error("by must be either 'key' or 'value'");
+              }
+              const reverse = positionalArgs.at(2) ?? kwargs.get("reverse") ?? new BooleanValue(false);
+              if (!(reverse instanceof BooleanValue)) {
+                throw new Error("reverse must be a boolean");
+              }
+              const items = Array.from(this.value.entries()).map(([key, value]) => new ArrayValue([new StringValue(key), value])).sort((a2, b3) => {
+                const index = by.value === "key" ? 0 : 1;
+                const aVal = a2.value[index];
+                const bVal = b3.value[index];
+                const result = compareRuntimeValues(aVal, bVal, caseSensitive.value);
+                return reverse.value ? -result : result;
+              });
+              return new ArrayValue(items);
+            })
+          ]
+        ]);
         items() {
           return new ArrayValue(
             Array.from(this.value.entries()).map(([key, value]) => new ArrayValue([new StringValue(key), value]))
@@ -12815,17 +12769,11 @@ var __webpack_modules__ = {
         }
       };
       var KeywordArgumentsValue = class extends ObjectValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "KeywordArgumentsValue");
-        }
+        type = "KeywordArgumentsValue";
       };
       var ArrayValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "ArrayValue");
-          __publicField(this, "builtins", /* @__PURE__ */ new Map([["length", new IntegerValue(this.value.length)]]));
-        }
+        type = "ArrayValue";
+        builtins = /* @__PURE__ */ new Map([["length", new IntegerValue(this.value.length)]]);
         /**
          * NOTE: necessary to override since all JavaScript arrays are considered truthy,
          * while only non-empty Python arrays are consider truthy.
@@ -12842,102 +12790,90 @@ var __webpack_modules__ = {
         }
       };
       var TupleValue = class extends ArrayValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "TupleValue");
-        }
+        type = "TupleValue";
       };
       var FunctionValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "FunctionValue");
-        }
+        type = "FunctionValue";
       };
       var NullValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "NullValue");
-        }
+        type = "NullValue";
       };
       var UndefinedValue = class extends RuntimeValue {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "type", "UndefinedValue");
-        }
+        type = "UndefinedValue";
       };
       var Environment = class {
         constructor(parent) {
-          /**
-           * The variables declared in this environment.
-           */
-          __publicField(this, "variables", /* @__PURE__ */ new Map([
-            [
-              "namespace",
-              new FunctionValue((args) => {
-                if (args.length === 0) {
-                  return new ObjectValue(/* @__PURE__ */ new Map());
-                }
-                if (args.length !== 1 || !(args[0] instanceof ObjectValue)) {
-                  throw new Error("`namespace` expects either zero arguments or a single object argument");
-                }
-                return args[0];
-              })
-            ]
-          ]));
-          /**
-           * The tests available in this environment.
-           */
-          __publicField(this, "tests", /* @__PURE__ */ new Map([
-            ["boolean", (operand) => operand.type === "BooleanValue"],
-            ["callable", (operand) => operand instanceof FunctionValue],
-            [
-              "odd",
-              (operand) => {
-                if (!(operand instanceof IntegerValue)) {
-                  throw new Error(`cannot odd on ${operand.type}`);
-                }
-                return operand.value % 2 !== 0;
-              }
-            ],
-            [
-              "even",
-              (operand) => {
-                if (!(operand instanceof IntegerValue)) {
-                  throw new Error(`cannot even on ${operand.type}`);
-                }
-                return operand.value % 2 === 0;
-              }
-            ],
-            ["false", (operand) => operand.type === "BooleanValue" && !operand.value],
-            ["true", (operand) => operand.type === "BooleanValue" && operand.value],
-            ["none", (operand) => operand.type === "NullValue"],
-            ["string", (operand) => operand.type === "StringValue"],
-            ["number", (operand) => operand instanceof IntegerValue || operand instanceof FloatValue],
-            ["integer", (operand) => operand instanceof IntegerValue],
-            ["iterable", (operand) => operand.type === "ArrayValue" || operand.type === "StringValue"],
-            ["mapping", (operand) => operand.type === "ObjectValue"],
-            [
-              "lower",
-              (operand) => {
-                const str = operand.value;
-                return operand.type === "StringValue" && str === str.toLowerCase();
-              }
-            ],
-            [
-              "upper",
-              (operand) => {
-                const str = operand.value;
-                return operand.type === "StringValue" && str === str.toUpperCase();
-              }
-            ],
-            ["none", (operand) => operand.type === "NullValue"],
-            ["defined", (operand) => operand.type !== "UndefinedValue"],
-            ["undefined", (operand) => operand.type === "UndefinedValue"],
-            ["equalto", (a2, b3) => a2.value === b3.value],
-            ["eq", (a2, b3) => a2.value === b3.value]
-          ]));
           this.parent = parent;
         }
+        /**
+         * The variables declared in this environment.
+         */
+        variables = /* @__PURE__ */ new Map([
+          [
+            "namespace",
+            new FunctionValue((args) => {
+              if (args.length === 0) {
+                return new ObjectValue(/* @__PURE__ */ new Map());
+              }
+              if (args.length !== 1 || !(args[0] instanceof ObjectValue)) {
+                throw new Error("`namespace` expects either zero arguments or a single object argument");
+              }
+              return args[0];
+            })
+          ]
+        ]);
+        /**
+         * The tests available in this environment.
+         */
+        tests = /* @__PURE__ */ new Map([
+          ["boolean", (operand) => operand.type === "BooleanValue"],
+          ["callable", (operand) => operand instanceof FunctionValue],
+          [
+            "odd",
+            (operand) => {
+              if (!(operand instanceof IntegerValue)) {
+                throw new Error(`cannot odd on ${operand.type}`);
+              }
+              return operand.value % 2 !== 0;
+            }
+          ],
+          [
+            "even",
+            (operand) => {
+              if (!(operand instanceof IntegerValue)) {
+                throw new Error(`cannot even on ${operand.type}`);
+              }
+              return operand.value % 2 === 0;
+            }
+          ],
+          ["false", (operand) => operand.type === "BooleanValue" && !operand.value],
+          ["true", (operand) => operand.type === "BooleanValue" && operand.value],
+          ["none", (operand) => operand.type === "NullValue"],
+          ["string", (operand) => operand.type === "StringValue"],
+          ["number", (operand) => operand instanceof IntegerValue || operand instanceof FloatValue],
+          ["integer", (operand) => operand instanceof IntegerValue],
+          ["iterable", (operand) => operand.type === "ArrayValue" || operand.type === "StringValue"],
+          ["mapping", (operand) => operand.type === "ObjectValue"],
+          [
+            "lower",
+            (operand) => {
+              const str = operand.value;
+              return operand.type === "StringValue" && str === str.toLowerCase();
+            }
+          ],
+          [
+            "upper",
+            (operand) => {
+              const str = operand.value;
+              return operand.type === "StringValue" && str === str.toUpperCase();
+            }
+          ],
+          ["none", (operand) => operand.type === "NullValue"],
+          ["defined", (operand) => operand.type !== "UndefinedValue"],
+          ["undefined", (operand) => operand.type === "UndefinedValue"],
+          ["equalto", (a2, b3) => a2.value === b3.value],
+          ["eq", (a2, b3) => a2.value === b3.value]
+        ]);
         /**
          * Set the value of a variable in the current environment.
          */
@@ -13061,8 +12997,8 @@ var __webpack_modules__ = {
         }
       }
       var Interpreter = class {
+        global;
         constructor(env3) {
-          __publicField(this, "global");
           this.global = env3 ?? new Environment();
         }
         /**
@@ -14149,11 +14085,11 @@ var __webpack_modules__ = {
         }
       }
       var Template = class {
+        parsed;
         /**
          * @param {string} template The template string
          */
         constructor(template) {
-          __publicField(this, "parsed");
           const tokens = tokenize(template, {
             lstrip_blocks: true,
             trim_blocks: true
@@ -14315,7 +14251,7 @@ var __webpack_modules__ = {
           await wasmInitPromise;
         }
         const sessionPromise = InferenceSession3.create(buffer_or_path, session_options);
-        wasmInitPromise ?? (wasmInitPromise = sessionPromise);
+        wasmInitPromise ??= sessionPromise;
         const session = await sessionPromise;
         session.config = session_config;
         return session;
@@ -15183,6 +15119,13 @@ var __webpack_modules__ = {
         "./src/utils/hub.js"
       );
       class Processor extends _utils_generic_js__WEBPACK_IMPORTED_MODULE_1__.Callable {
+        static classes = [
+          "image_processor_class",
+          "tokenizer_class",
+          "feature_extractor_class"
+        ];
+        static uses_processor_config = false;
+        static uses_chat_template_file = false;
         /**
          * Creates a new Processor with the given components
          * @param {Object} config 
@@ -15293,13 +15236,6 @@ var __webpack_modules__ = {
           return new this(config, components, chat_template);
         }
       }
-      __publicField(Processor, "classes", [
-        "image_processor_class",
-        "tokenizer_class",
-        "feature_extractor_class"
-      ]);
-      __publicField(Processor, "uses_processor_config", false);
-      __publicField(Processor, "uses_chat_template_file", false);
     }
   ),
   /***/
@@ -15611,20 +15547,20 @@ var __webpack_modules__ = {
         return decoderFeeds;
       }
       class PretrainedConfig {
+        // NOTE: Typo in original
+        /** @type {string|null} */
+        model_type = null;
+        /** @type {boolean} */
+        is_encoder_decoder = false;
+        /** @type {number} */
+        max_position_embeddings;
+        /** @type {TransformersJSConfig} */
+        "transformers.js_config";
         /**
          * Create a new PreTrainedTokenizer instance.
          * @param {Object} configJSON The JSON of the config.
          */
         constructor(configJSON) {
-          // NOTE: Typo in original
-          /** @type {string|null} */
-          __publicField(this, "model_type", null);
-          /** @type {boolean} */
-          __publicField(this, "is_encoder_decoder", false);
-          /** @type {number} */
-          __publicField(this, "max_position_embeddings");
-          /** @type {TransformersJSConfig} */
-          __publicField(this, "transformers.js_config");
           Object.assign(this, configJSON);
           this.normalized_config = getNormalizedConfig(this);
         }
@@ -15792,333 +15728,333 @@ var __webpack_modules__ = {
         "./src/utils/core.js"
       );
       class GenerationConfig {
+        // Parameters that control the length of the output
+        /**
+         * The maximum length the generated tokens can have.
+         * Corresponds to the length of the input prompt + `max_new_tokens`.
+         * Its effect is overridden by `max_new_tokens`, if also set.
+         * @type {number}
+         * @default 20
+         */
+        max_length = 20;
+        /**
+         * The maximum numbers of tokens to generate, ignoring the number of tokens in the prompt.
+         * @type {number}
+         * @default null
+         */
+        max_new_tokens = null;
+        /**
+         * The minimum length of the sequence to be generated.
+         * Corresponds to the length of the input prompt + `min_new_tokens`.
+         * Its effect is overridden by `min_new_tokens`, if also set.
+         * @type {number}
+         * @default 0
+         */
+        min_length = 0;
+        /**
+         * The minimum numbers of tokens to generate, ignoring the number of tokens in the prompt.
+         * @type {number}
+         * @default null
+         */
+        min_new_tokens = null;
+        /**
+         * Controls the stopping condition for beam-based methods, like beam-search. It accepts the following values:
+         * - `true`, where the generation stops as soon as there are `num_beams` complete candidates;
+         * - `false`, where an heuristic is applied and the generation stops when is it very unlikely to find better candidates;
+         * - `"never"`, where the beam search procedure only stops when there cannot be better candidates (canonical beam search algorithm).
+         * @type {boolean|"never"}
+         * @default false
+         */
+        early_stopping = false;
+        /**
+         * The maximum amount of time you allow the computation to run for in seconds.
+         * Generation will still finish the current pass after allocated time has been passed.
+         * @type {number}
+         * @default null
+         */
+        max_time = null;
+        // Parameters that control the generation strategy used
+        /**
+         * Whether or not to use sampling; use greedy decoding otherwise.
+         * @type {boolean}
+         * @default false
+         */
+        do_sample = false;
+        /**
+         * Number of beams for beam search. 1 means no beam search.
+         * @type {number}
+         * @default 1
+         */
+        num_beams = 1;
+        /**
+         * Number of groups to divide `num_beams` into in order to ensure diversity among different groups of beams.
+         * See [this paper](https://huggingface.co/papers/1610.02424) for more details.
+         * @type {number}
+         * @default 1
+         */
+        num_beam_groups = 1;
+        /**
+         * The values balance the model confidence and the degeneration penalty in contrastive search decoding.
+         * @type {number}
+         * @default null
+         */
+        penalty_alpha = null;
+        /**
+         * Whether or not the model should use the past last key/values attentions (if applicable to the model) to speed up decoding.
+         * @type {boolean}
+         * @default true
+         */
+        use_cache = true;
+        // Parameters for manipulation of the model output logits
+        /**
+         * The value used to modulate the next token probabilities.
+         * @type {number}
+         * @default 1.0
+         */
+        temperature = 1;
+        /**
+         * The number of highest probability vocabulary tokens to keep for top-k-filtering.
+         * @type {number}
+         * @default 50
+         */
+        top_k = 50;
+        /**
+         * If set to float < 1, only the smallest set of most probable tokens with probabilities that add up to `top_p` or higher are kept for generation.
+         * @type {number}
+         * @default 1.0
+         */
+        top_p = 1;
+        /**
+         * Local typicality measures how similar the conditional probability of predicting a target token next is to the expected conditional probability of predicting a random token next, given the partial text already generated.
+         * If set to float < 1, the smallest set of the most locally typical tokens with probabilities that add up to `typical_p` or higher are kept for generation.
+         * See [this paper](https://huggingface.co/papers/2202.00666) for more details.
+         * @type {number}
+         * @default 1.0
+         */
+        typical_p = 1;
+        /**
+         * If set to float strictly between 0 and 1, only tokens with a conditional probability greater than `epsilon_cutoff` will be sampled.
+         * In the paper, suggested values range from 3e-4 to 9e-4, depending on the size of the model.
+         * See [Truncation Sampling as Language Model Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
+         * @type {number}
+         * @default 0.0
+         */
+        epsilon_cutoff = 0;
+        /**
+         * Eta sampling is a hybrid of locally typical sampling and epsilon sampling.
+         * If set to float strictly between 0 and 1, a token is only considered if it is greater than either `eta_cutoff` or `sqrt(eta_cutoff) * exp(-entropy(softmax(next_token_logits)))`.
+         * The latter term is intuitively the expected next token probability, scaled by `sqrt(eta_cutoff)`. In the paper, suggested values range from 3e-4 to 2e-3, depending on the size of the model.
+         * See [Truncation Sampling as Language Model Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
+         * @type {number}
+         * @default 0.0
+         */
+        eta_cutoff = 0;
+        /**
+         * This value is subtracted from a beam's score if it generates a token same as any beam from other group at a particular time.
+         * Note that `diversity_penalty` is only effective if `group beam search` is enabled.
+         * @type {number}
+         * @default 0.0
+         */
+        diversity_penalty = 0;
+        /**
+         * The parameter for repetition penalty. 1.0 means no penalty.
+         * See [this paper](https://huggingface.co/papers/1909.05858) for more details.
+         * @type {number}
+         * @default 1.0
+         */
+        repetition_penalty = 1;
+        /**
+         * The paramater for encoder_repetition_penalty.
+         * An exponential penalty on sequences that are not in the original input.
+         * 1.0 means no penalty.
+         * @type {number}
+         * @default 1.0
+         */
+        encoder_repetition_penalty = 1;
+        /**
+         * Exponential penalty to the length that is used with beam-based generation.
+         * It is applied as an exponent to the sequence length, which in turn is used to divide the score of the sequence.
+         * Since the score is the log likelihood of the sequence (i.e. negative), `length_penalty` > 0.0 promotes longer sequences, while `length_penalty` < 0.0 encourages shorter sequences.
+         * @type {number}
+         * @default 1.0
+         */
+        length_penalty = 1;
+        /**
+         * If set to int > 0, all ngrams of that size can only occur once.
+         * @type {number}
+         * @default 0
+         */
+        no_repeat_ngram_size = 0;
+        /**
+         * List of token ids that are not allowed to be generated.
+         * In order to get the token ids of the words that should not appear in the generated text, use
+         * `tokenizer(bad_words, { add_prefix_space: true, add_special_tokens: false }).input_ids`.
+         * @type {number[][]}
+         * @default null
+         */
+        bad_words_ids = null;
+        /**
+         * List of token ids that must be generated.
+         * If given a `number[][]`, this is treated as a simple list of words that must be included, the opposite to `bad_words_ids`.
+         * If given `number[][][]`, this triggers a [disjunctive constraint](https://github.com/huggingface/transformers/issues/14081), where one can allow different forms of each word.
+         * @type {number[][]|number[][][]}
+         * @default null
+         */
+        force_words_ids = null;
+        /**
+         * Whether to renormalize the logits after applying all the logits processors or warpers (including the custom ones).
+         * It's highly recommended to set this flag to `true` as the search algorithms suppose the score logits are normalized but some logit processors or warpers break the normalization.
+         * @type {boolean}
+         * @default false
+         */
+        renormalize_logits = false;
+        /**
+         * Custom constraints that can be added to the generation to ensure that the output will contain the use of certain tokens as defined by `Constraint` objects, in the most sensible way possible.
+         * @type {Object[]}
+         * @default null
+         */
+        constraints = null;
+        /**
+         * The id of the token to force as the first generated token after the `decoder_start_token_id`.
+         * Useful for multilingual models like mBART where the first generated token needs to be the target language token.
+         * @type {number}
+         * @default null
+         */
+        forced_bos_token_id = null;
+        /**
+         * The id of the token to force as the last generated token when `max_length` is reached.
+         * Optionally, use a list to set multiple *end-of-sequence* tokens.
+         * @type {number|number[]}
+         * @default null
+         */
+        forced_eos_token_id = null;
+        /**
+         * Whether to remove possible *nan* and *inf* outputs of the model to prevent the generation method to crash. Note that using `remove_invalid_values` can slow down generation.
+         * @type {boolean}
+         */
+        remove_invalid_values = false;
+        /**
+         * This Tuple adds an exponentially increasing length penalty, after a certain amount of tokens have been generated.
+         * The tuple shall consist of: `(start_index, decay_factor)` where `start_index` indicates where penalty starts and `decay_factor` represents the factor of exponential decay.
+         * @type {[number, number]}
+         * @default null
+         */
+        exponential_decay_length_penalty = null;
+        /**
+         * A list of tokens that will be suppressed at generation.
+         * The `SuppressTokens` logit processor will set their log probs to `-inf` so that they are not sampled.
+         * @type {number[]}
+         * @default null
+         */
+        suppress_tokens = null;
+        /**
+         * A streamer that will be used to stream the generation.
+         * @type {import('./streamers.js').TextStreamer}
+         * @default null
+         */
+        streamer = null;
+        /**
+         * A list of tokens that will be suppressed at the beginning of the generation.
+         * The `SuppressBeginTokens` logit processor will set their log probs to `-inf` so that they are not sampled.
+         * @type {number[]}
+         * @default null
+         */
+        begin_suppress_tokens = null;
+        /**
+         * A list of pairs of integers which indicates a mapping from generation indices to token indices that will be forced before sampling.
+         * For example, `[[1, 123]]` means the second generated token will always be a token of index 123.
+         * @type {[number, number][]}
+         * @default null
+         */
+        forced_decoder_ids = null;
+        /**
+         * The guidance scale for classifier free guidance (CFG). CFG is enabled by setting `guidance_scale > 1`.
+         * Higher guidance scale encourages the model to generate samples that are more closely linked to the input
+         * prompt, usually at the expense of poorer quality.
+         * @type {number}
+         * @default null
+         */
+        guidance_scale = null;
+        // Parameters that define the output variables of `generate`
+        /**
+         * The number of independently computed returned sequences for each element in the batch.
+         * @type {number}
+         * @default 1
+         */
+        num_return_sequences = 1;
+        /**
+         * Whether or not to return the attentions tensors of all attention layers.
+         * See `attentions` under returned tensors for more details.
+         * @type {boolean}
+         * @default false
+         */
+        output_attentions = false;
+        /**
+         * Whether or not to return the hidden states of all layers.
+         * See `hidden_states` under returned tensors for more details.
+         * @type {boolean}
+         * @default false
+         */
+        output_hidden_states = false;
+        /**
+         * Whether or not to return the prediction scores.
+         * See `scores` under returned tensors for more details.
+         * @type {boolean}
+         * @default false
+         */
+        output_scores = false;
+        /**
+         * Whether or not to return a `ModelOutput` instead of a plain tuple.
+         * @type {boolean}
+         * @default false
+         */
+        return_dict_in_generate = false;
+        // Special tokens that can be used at generation time
+        /**
+         * The id of the *padding* token.
+         * @type {number}
+         * @default null
+         */
+        pad_token_id = null;
+        /**
+         * The id of the *beginning-of-sequence* token.
+         * @type {number}
+         * @default null
+         */
+        bos_token_id = null;
+        /**
+         * The id of the *end-of-sequence* token.
+         * Optionally, use a list to set multiple *end-of-sequence* tokens.
+         * @type {number|number[]}
+         * @default null
+         */
+        eos_token_id = null;
+        // Generation parameters exclusive to encoder-decoder models
+        /**
+         * If set to int > 0, all ngrams of that size that occur in the `encoder_input_ids` cannot occur in the `decoder_input_ids`.
+         * @type {number}
+         * @default 0
+         */
+        encoder_no_repeat_ngram_size = 0;
+        /**
+         * If an encoder-decoder model starts decoding with a different token than *bos*, the id of that token.
+         * @type {number}
+         * @default null
+         */
+        decoder_start_token_id = null;
+        // Wild card
+        /**
+         * Additional generation kwargs will be forwarded to the `generate` function of the model.
+         * Kwargs that are not present in `generate`'s signature will be used in the model forward pass.
+         * @type {Object}
+         * @default {}
+         */
+        generation_kwargs = {};
         /**
          * 
          * @param {GenerationConfig|import('../configs.js').PretrainedConfig} config 
          */
         constructor(config) {
-          // Parameters that control the length of the output
-          /**
-           * The maximum length the generated tokens can have.
-           * Corresponds to the length of the input prompt + `max_new_tokens`.
-           * Its effect is overridden by `max_new_tokens`, if also set.
-           * @type {number}
-           * @default 20
-           */
-          __publicField(this, "max_length", 20);
-          /**
-           * The maximum numbers of tokens to generate, ignoring the number of tokens in the prompt.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "max_new_tokens", null);
-          /**
-           * The minimum length of the sequence to be generated.
-           * Corresponds to the length of the input prompt + `min_new_tokens`.
-           * Its effect is overridden by `min_new_tokens`, if also set.
-           * @type {number}
-           * @default 0
-           */
-          __publicField(this, "min_length", 0);
-          /**
-           * The minimum numbers of tokens to generate, ignoring the number of tokens in the prompt.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "min_new_tokens", null);
-          /**
-           * Controls the stopping condition for beam-based methods, like beam-search. It accepts the following values:
-           * - `true`, where the generation stops as soon as there are `num_beams` complete candidates;
-           * - `false`, where an heuristic is applied and the generation stops when is it very unlikely to find better candidates;
-           * - `"never"`, where the beam search procedure only stops when there cannot be better candidates (canonical beam search algorithm).
-           * @type {boolean|"never"}
-           * @default false
-           */
-          __publicField(this, "early_stopping", false);
-          /**
-           * The maximum amount of time you allow the computation to run for in seconds.
-           * Generation will still finish the current pass after allocated time has been passed.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "max_time", null);
-          // Parameters that control the generation strategy used
-          /**
-           * Whether or not to use sampling; use greedy decoding otherwise.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "do_sample", false);
-          /**
-           * Number of beams for beam search. 1 means no beam search.
-           * @type {number}
-           * @default 1
-           */
-          __publicField(this, "num_beams", 1);
-          /**
-           * Number of groups to divide `num_beams` into in order to ensure diversity among different groups of beams.
-           * See [this paper](https://huggingface.co/papers/1610.02424) for more details.
-           * @type {number}
-           * @default 1
-           */
-          __publicField(this, "num_beam_groups", 1);
-          /**
-           * The values balance the model confidence and the degeneration penalty in contrastive search decoding.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "penalty_alpha", null);
-          /**
-           * Whether or not the model should use the past last key/values attentions (if applicable to the model) to speed up decoding.
-           * @type {boolean}
-           * @default true
-           */
-          __publicField(this, "use_cache", true);
-          // Parameters for manipulation of the model output logits
-          /**
-           * The value used to modulate the next token probabilities.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "temperature", 1);
-          /**
-           * The number of highest probability vocabulary tokens to keep for top-k-filtering.
-           * @type {number}
-           * @default 50
-           */
-          __publicField(this, "top_k", 50);
-          /**
-           * If set to float < 1, only the smallest set of most probable tokens with probabilities that add up to `top_p` or higher are kept for generation.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "top_p", 1);
-          /**
-           * Local typicality measures how similar the conditional probability of predicting a target token next is to the expected conditional probability of predicting a random token next, given the partial text already generated.
-           * If set to float < 1, the smallest set of the most locally typical tokens with probabilities that add up to `typical_p` or higher are kept for generation.
-           * See [this paper](https://huggingface.co/papers/2202.00666) for more details.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "typical_p", 1);
-          /**
-           * If set to float strictly between 0 and 1, only tokens with a conditional probability greater than `epsilon_cutoff` will be sampled.
-           * In the paper, suggested values range from 3e-4 to 9e-4, depending on the size of the model.
-           * See [Truncation Sampling as Language Model Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
-           * @type {number}
-           * @default 0.0
-           */
-          __publicField(this, "epsilon_cutoff", 0);
-          /**
-           * Eta sampling is a hybrid of locally typical sampling and epsilon sampling.
-           * If set to float strictly between 0 and 1, a token is only considered if it is greater than either `eta_cutoff` or `sqrt(eta_cutoff) * exp(-entropy(softmax(next_token_logits)))`.
-           * The latter term is intuitively the expected next token probability, scaled by `sqrt(eta_cutoff)`. In the paper, suggested values range from 3e-4 to 2e-3, depending on the size of the model.
-           * See [Truncation Sampling as Language Model Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
-           * @type {number}
-           * @default 0.0
-           */
-          __publicField(this, "eta_cutoff", 0);
-          /**
-           * This value is subtracted from a beam's score if it generates a token same as any beam from other group at a particular time.
-           * Note that `diversity_penalty` is only effective if `group beam search` is enabled.
-           * @type {number}
-           * @default 0.0
-           */
-          __publicField(this, "diversity_penalty", 0);
-          /**
-           * The parameter for repetition penalty. 1.0 means no penalty.
-           * See [this paper](https://huggingface.co/papers/1909.05858) for more details.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "repetition_penalty", 1);
-          /**
-           * The paramater for encoder_repetition_penalty.
-           * An exponential penalty on sequences that are not in the original input.
-           * 1.0 means no penalty.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "encoder_repetition_penalty", 1);
-          /**
-           * Exponential penalty to the length that is used with beam-based generation.
-           * It is applied as an exponent to the sequence length, which in turn is used to divide the score of the sequence.
-           * Since the score is the log likelihood of the sequence (i.e. negative), `length_penalty` > 0.0 promotes longer sequences, while `length_penalty` < 0.0 encourages shorter sequences.
-           * @type {number}
-           * @default 1.0
-           */
-          __publicField(this, "length_penalty", 1);
-          /**
-           * If set to int > 0, all ngrams of that size can only occur once.
-           * @type {number}
-           * @default 0
-           */
-          __publicField(this, "no_repeat_ngram_size", 0);
-          /**
-           * List of token ids that are not allowed to be generated.
-           * In order to get the token ids of the words that should not appear in the generated text, use
-           * `tokenizer(bad_words, { add_prefix_space: true, add_special_tokens: false }).input_ids`.
-           * @type {number[][]}
-           * @default null
-           */
-          __publicField(this, "bad_words_ids", null);
-          /**
-           * List of token ids that must be generated.
-           * If given a `number[][]`, this is treated as a simple list of words that must be included, the opposite to `bad_words_ids`.
-           * If given `number[][][]`, this triggers a [disjunctive constraint](https://github.com/huggingface/transformers/issues/14081), where one can allow different forms of each word.
-           * @type {number[][]|number[][][]}
-           * @default null
-           */
-          __publicField(this, "force_words_ids", null);
-          /**
-           * Whether to renormalize the logits after applying all the logits processors or warpers (including the custom ones).
-           * It's highly recommended to set this flag to `true` as the search algorithms suppose the score logits are normalized but some logit processors or warpers break the normalization.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "renormalize_logits", false);
-          /**
-           * Custom constraints that can be added to the generation to ensure that the output will contain the use of certain tokens as defined by `Constraint` objects, in the most sensible way possible.
-           * @type {Object[]}
-           * @default null
-           */
-          __publicField(this, "constraints", null);
-          /**
-           * The id of the token to force as the first generated token after the `decoder_start_token_id`.
-           * Useful for multilingual models like mBART where the first generated token needs to be the target language token.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "forced_bos_token_id", null);
-          /**
-           * The id of the token to force as the last generated token when `max_length` is reached.
-           * Optionally, use a list to set multiple *end-of-sequence* tokens.
-           * @type {number|number[]}
-           * @default null
-           */
-          __publicField(this, "forced_eos_token_id", null);
-          /**
-           * Whether to remove possible *nan* and *inf* outputs of the model to prevent the generation method to crash. Note that using `remove_invalid_values` can slow down generation.
-           * @type {boolean}
-           */
-          __publicField(this, "remove_invalid_values", false);
-          /**
-           * This Tuple adds an exponentially increasing length penalty, after a certain amount of tokens have been generated.
-           * The tuple shall consist of: `(start_index, decay_factor)` where `start_index` indicates where penalty starts and `decay_factor` represents the factor of exponential decay.
-           * @type {[number, number]}
-           * @default null
-           */
-          __publicField(this, "exponential_decay_length_penalty", null);
-          /**
-           * A list of tokens that will be suppressed at generation.
-           * The `SuppressTokens` logit processor will set their log probs to `-inf` so that they are not sampled.
-           * @type {number[]}
-           * @default null
-           */
-          __publicField(this, "suppress_tokens", null);
-          /**
-           * A streamer that will be used to stream the generation.
-           * @type {import('./streamers.js').TextStreamer}
-           * @default null
-           */
-          __publicField(this, "streamer", null);
-          /**
-           * A list of tokens that will be suppressed at the beginning of the generation.
-           * The `SuppressBeginTokens` logit processor will set their log probs to `-inf` so that they are not sampled.
-           * @type {number[]}
-           * @default null
-           */
-          __publicField(this, "begin_suppress_tokens", null);
-          /**
-           * A list of pairs of integers which indicates a mapping from generation indices to token indices that will be forced before sampling.
-           * For example, `[[1, 123]]` means the second generated token will always be a token of index 123.
-           * @type {[number, number][]}
-           * @default null
-           */
-          __publicField(this, "forced_decoder_ids", null);
-          /**
-           * The guidance scale for classifier free guidance (CFG). CFG is enabled by setting `guidance_scale > 1`.
-           * Higher guidance scale encourages the model to generate samples that are more closely linked to the input
-           * prompt, usually at the expense of poorer quality.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "guidance_scale", null);
-          // Parameters that define the output variables of `generate`
-          /**
-           * The number of independently computed returned sequences for each element in the batch.
-           * @type {number}
-           * @default 1
-           */
-          __publicField(this, "num_return_sequences", 1);
-          /**
-           * Whether or not to return the attentions tensors of all attention layers.
-           * See `attentions` under returned tensors for more details.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "output_attentions", false);
-          /**
-           * Whether or not to return the hidden states of all layers.
-           * See `hidden_states` under returned tensors for more details.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "output_hidden_states", false);
-          /**
-           * Whether or not to return the prediction scores.
-           * See `scores` under returned tensors for more details.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "output_scores", false);
-          /**
-           * Whether or not to return a `ModelOutput` instead of a plain tuple.
-           * @type {boolean}
-           * @default false
-           */
-          __publicField(this, "return_dict_in_generate", false);
-          // Special tokens that can be used at generation time
-          /**
-           * The id of the *padding* token.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "pad_token_id", null);
-          /**
-           * The id of the *beginning-of-sequence* token.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "bos_token_id", null);
-          /**
-           * The id of the *end-of-sequence* token.
-           * Optionally, use a list to set multiple *end-of-sequence* tokens.
-           * @type {number|number[]}
-           * @default null
-           */
-          __publicField(this, "eos_token_id", null);
-          // Generation parameters exclusive to encoder-decoder models
-          /**
-           * If set to int > 0, all ngrams of that size that occur in the `encoder_input_ids` cannot occur in the `decoder_input_ids`.
-           * @type {number}
-           * @default 0
-           */
-          __publicField(this, "encoder_no_repeat_ngram_size", 0);
-          /**
-           * If an encoder-decoder model starts decoding with a different token than *bos*, the id of that token.
-           * @type {number}
-           * @default null
-           */
-          __publicField(this, "decoder_start_token_id", null);
-          // Wild card
-          /**
-           * Additional generation kwargs will be forwarded to the `generate` function of the model.
-           * Kwargs that are not present in `generate`'s signature will be used in the model forward pass.
-           * @type {Object}
-           * @default {}
-           */
-          __publicField(this, "generation_kwargs", {});
           Object.assign(this, (0, _utils_core_js__WEBPACK_IMPORTED_MODULE_0__.pick)(config, Object.getOwnPropertyNames(this)));
         }
       }
@@ -17059,7 +16995,7 @@ var __webpack_modules__ = {
           for (const criterion of this.criteria) {
             const criterion_done = criterion(input_ids, scores);
             for (let i3 = 0; i3 < is_done.length; ++i3) {
-              is_done[i3] || (is_done[i3] = criterion_done[i3]);
+              is_done[i3] ||= criterion_done[i3];
             }
           }
           return is_done;
@@ -20489,10 +20425,10 @@ var __webpack_modules__ = {
         const baseName = `${fileName}${suffix}.onnx`;
         const modelFileName = `${options.subfolder ?? ""}/${baseName}`;
         const session_options = { ...options.session_options };
-        session_options.executionProviders ?? (session_options.executionProviders = executionProviders);
+        session_options.executionProviders ??= executionProviders;
         const free_dimension_overrides = custom_config.free_dimension_overrides;
         if (free_dimension_overrides) {
-          session_options.freeDimensionOverrides ?? (session_options.freeDimensionOverrides = free_dimension_overrides);
+          session_options.freeDimensionOverrides ??= free_dimension_overrides;
         } else if (selectedDevice.startsWith("webnn") && !session_options.freeDimensionOverrides) {
           console.warn(
             `WebNN does not currently support dynamic shapes and requires 'free_dimension_overrides' to be set in config.json, preferably as a field within config["transformers.js_config"]["device_config"]["${selectedDevice}"]. When 'free_dimension_overrides' is not set, you may experience significant performance degradation.`
@@ -20962,6 +20898,8 @@ var __webpack_modules__ = {
         return model_inputs;
       }
       class PreTrainedModel extends _utils_generic_js__WEBPACK_IMPORTED_MODULE_3__.Callable {
+        main_input_name = "input_ids";
+        forward_params = ["input_ids", "attention_mask"];
         /**
          * Creates a new instance of the `PreTrainedModel` class.
          * @param {import('./configs.js').PretrainedConfig} config The model configuration.
@@ -20970,8 +20908,6 @@ var __webpack_modules__ = {
          */
         constructor(config, sessions, configs) {
           super();
-          __publicField(this, "main_input_name", "input_ids");
-          __publicField(this, "forward_params", ["input_ids", "attention_mask"]);
           this.config = config;
           this.sessions = sessions;
           this.configs = configs;
@@ -21475,7 +21411,7 @@ var __webpack_modules__ = {
           let { decoder_input_ids, ...model_inputs } = model_kwargs;
           if (!(decoder_input_ids instanceof _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.Tensor)) {
             if (!decoder_input_ids) {
-              decoder_start_token_id ?? (decoder_start_token_id = bos_token_id);
+              decoder_start_token_id ??= bos_token_id;
               if (this.config.model_type === "musicgen") {
                 decoder_input_ids = Array.from({
                   // @ts-expect-error TS2339
@@ -22399,17 +22335,14 @@ var __webpack_modules__ = {
         }
       }
       class T5PreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "encoder_outputs",
-            "decoder_input_ids",
-            "decoder_attention_mask",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "encoder_outputs",
+          "decoder_input_ids",
+          "decoder_attention_mask",
+          "past_key_values"
+        ];
       }
       ;
       class T5Model extends T5PreTrainedModel {
@@ -22634,18 +22567,15 @@ var __webpack_modules__ = {
       class ASTForAudioClassification extends ASTPreTrainedModel {
       }
       class WhisperPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "requires_attention_mask", false);
-          __publicField(this, "main_input_name", "input_features");
-          __publicField(this, "forward_params", [
-            "input_features",
-            "attention_mask",
-            "decoder_input_ids",
-            "decoder_attention_mask",
-            "past_key_values"
-          ]);
-        }
+        requires_attention_mask = false;
+        main_input_name = "input_features";
+        forward_params = [
+          "input_features",
+          "attention_mask",
+          "decoder_input_ids",
+          "decoder_attention_mask",
+          "past_key_values"
+        ];
       }
       ;
       class WhisperModel extends WhisperPreTrainedModel {
@@ -22706,13 +22636,13 @@ var __webpack_modules__ = {
           generation_config = this._prepare_generation_config(generation_config, kwargs);
           const init_tokens = kwargs.decoder_input_ids ?? this._retrieve_init_tokens(generation_config);
           if (generation_config.return_timestamps) {
-            logits_processor ?? (logits_processor = new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.LogitsProcessorList());
+            logits_processor ??= new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.LogitsProcessorList();
             logits_processor.push(
               new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.WhisperTimeStampLogitsProcessor(generation_config, init_tokens)
             );
           }
           if (generation_config.begin_suppress_tokens) {
-            logits_processor ?? (logits_processor = new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.LogitsProcessorList());
+            logits_processor ??= new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.LogitsProcessorList();
             logits_processor.push(
               new _generation_logits_process_js__WEBPACK_IMPORTED_MODULE_7__.SuppressTokensAtBeginLogitsProcessor(generation_config.begin_suppress_tokens, init_tokens.length)
             );
@@ -22829,16 +22759,13 @@ var __webpack_modules__ = {
       class LiteWhisperForConditionalGeneration extends WhisperForConditionalGeneration {
       }
       class MoonshinePreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "requires_attention_mask", false);
-          __publicField(this, "main_input_name", "input_values");
-          __publicField(this, "forward_params", [
-            "input_values",
-            "decoder_input_ids",
-            "past_key_values"
-          ]);
-        }
+        requires_attention_mask = false;
+        main_input_name = "input_values";
+        forward_params = [
+          "input_values",
+          "decoder_input_ids",
+          "past_key_values"
+        ];
       }
       ;
       class MoonshineModel extends MoonshinePreTrainedModel {
@@ -22846,30 +22773,24 @@ var __webpack_modules__ = {
       class MoonshineForConditionalGeneration extends MoonshinePreTrainedModel {
       }
       class VisionEncoderDecoderModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "main_input_name", "pixel_values");
-          __publicField(this, "forward_params", [
-            // Encoder inputs
-            "pixel_values",
-            // Decoder inpputs
-            "decoder_input_ids",
-            "encoder_hidden_states",
-            "past_key_values"
-          ]);
-        }
+        main_input_name = "pixel_values";
+        forward_params = [
+          // Encoder inputs
+          "pixel_values",
+          // Decoder inpputs
+          "decoder_input_ids",
+          "encoder_hidden_states",
+          "past_key_values"
+        ];
       }
       class LlavaPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "pixel_values",
-            "position_ids",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "pixel_values",
+          "position_ids",
+          "past_key_values"
+        ];
       }
       class LlavaForConditionalGeneration extends LlavaPreTrainedModel {
         _merge_input_ids_with_image_features(kwargs) {
@@ -22888,23 +22809,20 @@ var __webpack_modules__ = {
       class Moondream1ForConditionalGeneration extends LlavaForConditionalGeneration {
       }
       class Florence2PreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            // Encoder inputs
-            "input_ids",
-            "inputs_embeds",
-            "attention_mask",
-            "pixel_values",
-            // Decoder inputs
-            "encoder_outputs",
-            "decoder_input_ids",
-            "decoder_inputs_embeds",
-            "decoder_attention_mask",
-            "past_key_values"
-          ]);
-          __publicField(this, "main_input_name", "inputs_embeds");
-        }
+        forward_params = [
+          // Encoder inputs
+          "input_ids",
+          "inputs_embeds",
+          "attention_mask",
+          "pixel_values",
+          // Decoder inputs
+          "encoder_outputs",
+          "decoder_input_ids",
+          "decoder_inputs_embeds",
+          "decoder_attention_mask",
+          "past_key_values"
+        ];
+        main_input_name = "inputs_embeds";
       }
       class Florence2ForConditionalGeneration extends Florence2PreTrainedModel {
         _merge_input_ids_with_image_features({
@@ -22987,17 +22905,14 @@ var __webpack_modules__ = {
         }
       }
       class PaliGemmaPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            // 'inputs_embeds',
-            "attention_mask",
-            "pixel_values",
-            "position_ids",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          // 'inputs_embeds',
+          "attention_mask",
+          "pixel_values",
+          "position_ids",
+          "past_key_values"
+        ];
       }
       class PaliGemmaForConditionalGeneration extends PaliGemmaPreTrainedModel {
         _merge_input_ids_with_image_features(kwargs) {
@@ -23026,20 +22941,17 @@ var __webpack_modules__ = {
       class Mistral3ForConditionalGeneration extends LlavaQwen2ForCausalLM {
       }
       class Gemma3nPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "inputs_embeds",
-            "per_layer_inputs",
-            "position_ids",
-            "pixel_values",
-            "input_features",
-            "input_features_mask",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "inputs_embeds",
+          "per_layer_inputs",
+          "position_ids",
+          "pixel_values",
+          "input_features",
+          "input_features_mask",
+          "past_key_values"
+        ];
       }
       class Gemma3nForConditionalGeneration extends Gemma3nPreTrainedModel {
         async forward({
@@ -23123,17 +23035,14 @@ var __webpack_modules__ = {
         }
       }
       class Idefics3PreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "pixel_values",
-            "pixel_attention_mask",
-            "position_ids",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "pixel_values",
+          "pixel_attention_mask",
+          "position_ids",
+          "past_key_values"
+        ];
       }
       class Idefics3ForConditionalGeneration extends Idefics3PreTrainedModel {
         async encode_image({ pixel_values, pixel_attention_mask }) {
@@ -23154,18 +23063,15 @@ var __webpack_modules__ = {
       class SmolVLMForConditionalGeneration extends Idefics3ForConditionalGeneration {
       }
       class Phi3VPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "inputs_embeds",
-            "attention_mask",
-            "position_ids",
-            "pixel_values",
-            "image_sizes",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "inputs_embeds",
+          "attention_mask",
+          "position_ids",
+          "pixel_values",
+          "image_sizes",
+          "past_key_values"
+        ];
       }
       class Phi3VForCausalLM extends Phi3VPreTrainedModel {
         async forward({
@@ -23518,19 +23424,16 @@ var __webpack_modules__ = {
       class Qwen3ForCausalLM extends Qwen3PreTrainedModel {
       }
       class Qwen2VLPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            // Text inputs
-            "input_ids",
-            "attention_mask",
-            "position_ids",
-            "past_key_values",
-            // Vision inputs
-            "pixel_values",
-            "image_grid_thw"
-          ]);
-        }
+        forward_params = [
+          // Text inputs
+          "input_ids",
+          "attention_mask",
+          "position_ids",
+          "past_key_values",
+          // Vision inputs
+          "pixel_values",
+          "image_grid_thw"
+        ];
       }
       class Qwen2VLForConditionalGeneration extends Qwen2VLPreTrainedModel {
         /**
@@ -24243,7 +24146,7 @@ var __webpack_modules__ = {
           } else {
             model_inputs = { ...model_inputs };
           }
-          model_inputs.input_labels ?? (model_inputs.input_labels = (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.ones)(model_inputs.input_points.dims.slice(0, -1)));
+          model_inputs.input_labels ??= (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.ones)(model_inputs.input_points.dims.slice(0, -1));
           const decoder_inputs = {
             image_embeddings: model_inputs.image_embeddings,
             image_positional_embeddings: model_inputs.image_positional_embeddings
@@ -24322,8 +24225,8 @@ var __webpack_modules__ = {
               throw new Error("When both `input_points` and `input_boxes` are provided, the number of boxes per image must be 1.");
             }
             const shape2 = model_inputs.input_points.dims;
-            model_inputs.input_labels ?? (model_inputs.input_labels = (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.ones)(shape2.slice(0, -1)));
-            model_inputs.input_boxes ?? (model_inputs.input_boxes = (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.full)([shape2[0], 0, 4], 0));
+            model_inputs.input_labels ??= (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.ones)(shape2.slice(0, -1));
+            model_inputs.input_boxes ??= (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.full)([shape2[0], 0, 4], 0);
           } else if (model_inputs.input_boxes) {
             const shape2 = model_inputs.input_boxes.dims;
             model_inputs.input_labels = (0, _utils_tensor_js__WEBPACK_IMPORTED_MODULE_9__.full)([shape2[0], shape2[1], 0], -1n);
@@ -24676,10 +24579,7 @@ var __webpack_modules__ = {
         }
       }
       class SpeechT5HifiGan extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "main_input_name", "spectrogram");
-        }
+        main_input_name = "spectrogram";
       }
       class SupertonicPreTrainedModel extends PreTrainedModel {
       }
@@ -24837,18 +24737,15 @@ var __webpack_modules__ = {
       class MusicgenForCausalLM extends MusicgenPreTrainedModel {
       }
       class MusicgenForConditionalGeneration extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          // NOTE: not MusicgenPreTrainedModel
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "encoder_outputs",
-            "decoder_input_ids",
-            "decoder_attention_mask",
-            "past_key_values"
-          ]);
-        }
+        // NOTE: not MusicgenPreTrainedModel
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "encoder_outputs",
+          "decoder_input_ids",
+          "decoder_attention_mask",
+          "past_key_values"
+        ];
         /**
          * Apply the pattern mask to the final ids,
          * then revert the pattern delay mask by filtering the pad token id in a single step.
@@ -24972,22 +24869,22 @@ var __webpack_modules__ = {
       class MultiModalityPreTrainedModel extends PreTrainedModel {
       }
       class MultiModalityCausalLM extends MultiModalityPreTrainedModel {
+        forward_params = [
+          // prepare_inputs_embeds
+          "input_ids",
+          "pixel_values",
+          "images_seq_mask",
+          "images_emb_mask",
+          // language_model
+          "attention_mask",
+          "position_ids",
+          "past_key_values"
+        ];
         /**
          * @param {ConstructorParameters<typeof MultiModalityPreTrainedModel>} args
          */
         constructor(...args) {
           super(...args);
-          __publicField(this, "forward_params", [
-            // prepare_inputs_embeds
-            "input_ids",
-            "pixel_values",
-            "images_seq_mask",
-            "images_emb_mask",
-            // language_model
-            "attention_mask",
-            "position_ids",
-            "past_key_values"
-          ]);
           this._generation_mode = "text";
         }
         async forward(model_inputs) {
@@ -25082,16 +24979,13 @@ var __webpack_modules__ = {
       class PatchTSMixerForPrediction extends PatchTSMixerPreTrainedModel {
       }
       class UltravoxPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "forward_params", [
-            "input_ids",
-            "attention_mask",
-            "position_ids",
-            "audio_values",
-            "past_key_values"
-          ]);
-        }
+        forward_params = [
+          "input_ids",
+          "attention_mask",
+          "position_ids",
+          "audio_values",
+          "past_key_values"
+        ];
       }
       class UltravoxModel extends UltravoxPreTrainedModel {
         _merge_input_ids_with_audio_features(kwargs) {
@@ -25108,11 +25002,8 @@ var __webpack_modules__ = {
       class VoxtralForConditionalGeneration extends UltravoxModel {
       }
       class MimiPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "main_input_name", "input_values");
-          __publicField(this, "forward_params", ["input_values"]);
-        }
+        main_input_name = "input_values";
+        forward_params = ["input_values"];
       }
       class MimiEncoderOutput extends ModelOutput {
         /**
@@ -25174,11 +25065,8 @@ var __webpack_modules__ = {
         }
       }
       class DacPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "main_input_name", "input_values");
-          __publicField(this, "forward_params", ["input_values"]);
-        }
+        main_input_name = "input_values";
+        forward_params = ["input_values"];
       }
       class DacEncoderOutput extends ModelOutput {
         /**
@@ -25240,11 +25128,8 @@ var __webpack_modules__ = {
         }
       }
       class SnacPreTrainedModel extends PreTrainedModel {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "main_input_name", "input_values");
-          __publicField(this, "forward_params", ["input_values"]);
-        }
+        main_input_name = "input_values";
+        forward_params = ["input_values"];
       }
       class SnacModel extends SnacPreTrainedModel {
         /**
@@ -25286,6 +25171,16 @@ var __webpack_modules__ = {
         }
       }
       class PretrainedMixin {
+        /**
+         * Mapping from model type to model class.
+         * @type {Map<string, Object>[]}
+         */
+        static MODEL_CLASS_MAPPINGS = null;
+        /**
+         * Whether to attempt to instantiate the base class (`PretrainedModel`) if 
+         * the model type is not found in the mapping.
+         */
+        static BASE_IF_FAIL = false;
         /** @type {typeof PreTrainedModel.from_pretrained} */
         static async from_pretrained(pretrained_model_name_or_path, {
           progress_callback = null,
@@ -25341,16 +25236,6 @@ var __webpack_modules__ = {
           }
         }
       }
-      /**
-       * Mapping from model type to model class.
-       * @type {Map<string, Object>[]}
-       */
-      __publicField(PretrainedMixin, "MODEL_CLASS_MAPPINGS", null);
-      /**
-       * Whether to attempt to instantiate the base class (`PretrainedModel`) if 
-       * the model type is not found in the mapping.
-       */
-      __publicField(PretrainedMixin, "BASE_IF_FAIL", false);
       const MODEL_MAPPING_NAMES_ENCODER_ONLY = /* @__PURE__ */ new Map([
         ["bert", ["BertModel", BertModel]],
         ["neobert", ["NeoBertModel", NeoBertModel]],
@@ -25873,101 +25758,101 @@ var __webpack_modules__ = {
         MODEL_NAME_TO_CLASS_MAPPING.set(name, PreTrainedModel);
       }
       class AutoModel extends PretrainedMixin {
+        /** @type {Map<string, Object>[]} */
+        // @ts-ignore
+        static MODEL_CLASS_MAPPINGS = MODEL_CLASS_TYPE_MAPPING.map((x2) => x2[0]);
+        static BASE_IF_FAIL = true;
       }
-      /** @type {Map<string, Object>[]} */
-      // @ts-ignore
-      __publicField(AutoModel, "MODEL_CLASS_MAPPINGS", MODEL_CLASS_TYPE_MAPPING.map((x2) => x2[0]));
-      __publicField(AutoModel, "BASE_IF_FAIL", true);
       class AutoModelForSequenceClassification extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_SEQUENCE_CLASSIFICATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForSequenceClassification, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_SEQUENCE_CLASSIFICATION_MAPPING_NAMES]);
       class AutoModelForTokenClassification extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_TOKEN_CLASSIFICATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForTokenClassification, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_TOKEN_CLASSIFICATION_MAPPING_NAMES]);
       class AutoModelForSeq2SeqLM extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES];
       }
-      __publicField(AutoModelForSeq2SeqLM, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES]);
       class AutoModelForSpeechSeq2Seq extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING_NAMES];
       }
-      __publicField(AutoModelForSpeechSeq2Seq, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING_NAMES]);
       class AutoModelForTextToSpectrogram extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_TEXT_TO_SPECTROGRAM_MAPPING_NAMES];
       }
-      __publicField(AutoModelForTextToSpectrogram, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_TEXT_TO_SPECTROGRAM_MAPPING_NAMES]);
       class AutoModelForTextToWaveform extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_TEXT_TO_WAVEFORM_MAPPING_NAMES];
       }
-      __publicField(AutoModelForTextToWaveform, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_TEXT_TO_WAVEFORM_MAPPING_NAMES]);
       class AutoModelForCausalLM extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_CAUSAL_LM_MAPPING_NAMES];
       }
-      __publicField(AutoModelForCausalLM, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_CAUSAL_LM_MAPPING_NAMES]);
       class AutoModelForMaskedLM extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_MASKED_LM_MAPPING_NAMES];
       }
-      __publicField(AutoModelForMaskedLM, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_MASKED_LM_MAPPING_NAMES]);
       class AutoModelForQuestionAnswering extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_QUESTION_ANSWERING_MAPPING_NAMES];
       }
-      __publicField(AutoModelForQuestionAnswering, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_QUESTION_ANSWERING_MAPPING_NAMES]);
       class AutoModelForVision2Seq extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_VISION_2_SEQ_MAPPING_NAMES];
       }
-      __publicField(AutoModelForVision2Seq, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_VISION_2_SEQ_MAPPING_NAMES]);
       class AutoModelForImageClassification extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageClassification, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES]);
       class AutoModelForImageSegmentation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_SEGMENTATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageSegmentation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_SEGMENTATION_MAPPING_NAMES]);
       class AutoModelForSemanticSegmentation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_SEMANTIC_SEGMENTATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForSemanticSegmentation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_SEMANTIC_SEGMENTATION_MAPPING_NAMES]);
       class AutoModelForUniversalSegmentation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_UNIVERSAL_SEGMENTATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForUniversalSegmentation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_UNIVERSAL_SEGMENTATION_MAPPING_NAMES]);
       class AutoModelForObjectDetection extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_OBJECT_DETECTION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForObjectDetection, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_OBJECT_DETECTION_MAPPING_NAMES]);
       class AutoModelForZeroShotObjectDetection extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_ZERO_SHOT_OBJECT_DETECTION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForZeroShotObjectDetection, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_ZERO_SHOT_OBJECT_DETECTION_MAPPING_NAMES]);
       class AutoModelForMaskGeneration extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_MASK_GENERATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForMaskGeneration, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_MASK_GENERATION_MAPPING_NAMES]);
       class AutoModelForCTC extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_CTC_MAPPING_NAMES];
       }
-      __publicField(AutoModelForCTC, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_CTC_MAPPING_NAMES]);
       class AutoModelForAudioClassification extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_AUDIO_CLASSIFICATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForAudioClassification, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_AUDIO_CLASSIFICATION_MAPPING_NAMES]);
       class AutoModelForXVector extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_AUDIO_XVECTOR_MAPPING_NAMES];
       }
-      __publicField(AutoModelForXVector, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_AUDIO_XVECTOR_MAPPING_NAMES]);
       class AutoModelForAudioFrameClassification extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_AUDIO_FRAME_CLASSIFICATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForAudioFrameClassification, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_AUDIO_FRAME_CLASSIFICATION_MAPPING_NAMES]);
       class AutoModelForDocumentQuestionAnswering extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_DOCUMENT_QUESTION_ANSWERING_MAPPING_NAMES];
       }
-      __publicField(AutoModelForDocumentQuestionAnswering, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_DOCUMENT_QUESTION_ANSWERING_MAPPING_NAMES]);
       class AutoModelForImageMatting extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_MATTING_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageMatting, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_MATTING_MAPPING_NAMES]);
       class AutoModelForImageToImage extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_TO_IMAGE_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageToImage, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_TO_IMAGE_MAPPING_NAMES]);
       class AutoModelForDepthEstimation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_DEPTH_ESTIMATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForDepthEstimation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_DEPTH_ESTIMATION_MAPPING_NAMES]);
       class AutoModelForNormalEstimation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_NORMAL_ESTIMATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForNormalEstimation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_NORMAL_ESTIMATION_MAPPING_NAMES]);
       class AutoModelForPoseEstimation extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_POSE_ESTIMATION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForPoseEstimation, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_POSE_ESTIMATION_MAPPING_NAMES]);
       class AutoModelForImageFeatureExtraction extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_FEATURE_EXTRACTION_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageFeatureExtraction, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_FEATURE_EXTRACTION_MAPPING_NAMES]);
       class AutoModelForImageTextToText extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES];
       }
-      __publicField(AutoModelForImageTextToText, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES]);
       class AutoModelForAudioTextToText extends PretrainedMixin {
+        static MODEL_CLASS_MAPPINGS = [MODEL_FOR_AUDIO_TEXT_TO_TEXT_MAPPING_NAMES];
       }
-      __publicField(AutoModelForAudioTextToText, "MODEL_CLASS_MAPPINGS", [MODEL_FOR_AUDIO_TEXT_TO_TEXT_MAPPING_NAMES]);
       class Seq2SeqLMOutput extends ModelOutput {
         /**
          * @param {Object} output The output of the model.
@@ -27193,6 +27078,8 @@ var __webpack_modules__ = {
         "./src/tokenizers.js"
       );
       class Florence2Processor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
         constructor(config, components, chat_template) {
           super(config, components, chat_template);
           const {
@@ -27291,8 +27178,6 @@ var __webpack_modules__ = {
           };
         }
       }
-      __publicField(Florence2Processor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(Florence2Processor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -27466,6 +27351,11 @@ var __webpack_modules__ = {
         "./src/utils/audio.js"
       );
       class Gemma3nProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_2__.AutoFeatureExtractor;
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_3__.AutoTokenizer;
+        static uses_processor_config = true;
+        static uses_chat_template_file = true;
         constructor(config, components, chat_template) {
           super(config, components, chat_template);
           this.audio_seq_length = this.config.audio_seq_length;
@@ -27530,11 +27420,6 @@ ${boi_token}${image_tokens_expanded}${eoi_token}
           };
         }
       }
-      __publicField(Gemma3nProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(Gemma3nProcessor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_2__.AutoFeatureExtractor);
-      __publicField(Gemma3nProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_3__.AutoTokenizer);
-      __publicField(Gemma3nProcessor, "uses_processor_config", true);
-      __publicField(Gemma3nProcessor, "uses_chat_template_file", true);
     }
   ),
   /***/
@@ -27643,6 +27528,8 @@ ${boi_token}${image_tokens_expanded}${eoi_token}
         return posmaps_list.map((val, idx) => val ? idx : null).filter((idx) => idx !== null).map((i3) => input_ids_list[i3]);
       }
       class GroundingDinoProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
         /**
          * @typedef {import('../../utils/image.js').RawImage} RawImage
          */
@@ -27701,8 +27588,6 @@ ${boi_token}${image_tokens_expanded}${eoi_token}
           return results;
         }
       }
-      __publicField(GroundingDinoProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(GroundingDinoProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -27970,12 +27855,12 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         );
       }
       class Idefics3Processor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "fake_image_token", "<fake_token_around_image>");
-          __publicField(this, "image_token", "<image>");
-          __publicField(this, "global_img_token", "<global-img>");
-        }
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static uses_processor_config = true;
+        fake_image_token = "<fake_token_around_image>";
+        image_token = "<image>";
+        global_img_token = "<global-img>";
         /**
          * 
          * @param {string|string[]} text 
@@ -27983,7 +27868,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
          * @returns {Promise<any>}
          */
         async _call(text, images = null, options = {}) {
-          options.return_row_col_info ?? (options.return_row_col_info = true);
+          options.return_row_col_info ??= true;
           let image_inputs;
           if (images) {
             image_inputs = await this.image_processor(images, options);
@@ -28028,9 +27913,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(Idefics3Processor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(Idefics3Processor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(Idefics3Processor, "uses_processor_config", true);
     }
   ),
   /***/
@@ -28596,6 +28478,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/utils/image.js"
       );
       class VLChatProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static uses_processor_config = true;
         constructor(config, components, chat_template) {
           super(config, components, chat_template);
           this.image_tag = this.config.image_tag;
@@ -28697,9 +28582,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return final;
         }
       }
-      __publicField(VLChatProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(VLChatProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(VLChatProcessor, "uses_processor_config", true);
     }
   ),
   /***/
@@ -28768,6 +28650,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/tokenizers.js"
       );
       class JinaCLIPProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
         async _call(text = null, images = null, kwargs = {}) {
           if (!text && !images) {
             throw new Error("Either text or images must be provided");
@@ -28780,8 +28664,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(JinaCLIPProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(JinaCLIPProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -28813,6 +28695,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/tokenizers.js"
       );
       class LlavaProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static uses_processor_config = true;
         /**
          * @typedef {import('../../utils/image.js').RawImage} RawImage
          */
@@ -28840,9 +28725,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(LlavaProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(LlavaProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(LlavaProcessor, "uses_processor_config", true);
     }
   ),
   /***/
@@ -28970,6 +28852,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "wp": ["wp_decode", 102]
       };
       class MgpstrProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
         /**
          * @returns {import('../../tokenizers.js').MgpstrTokenizer} The character tokenizer.
          */
@@ -29099,8 +28983,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return result;
         }
       }
-      __publicField(MgpstrProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(MgpstrProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -29335,6 +29217,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/base/processing_utils.js"
       );
       class MoonshineProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given audio input.
          * @param {any} audio The audio input to extract features from.
@@ -29344,8 +29228,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return await this.feature_extractor(audio);
         }
       }
-      __publicField(MoonshineProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer);
-      __publicField(MoonshineProcessor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor);
     }
   ),
   /***/
@@ -29460,9 +29342,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/tokenizers.js"
       );
       class OwlViTProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
       }
-      __publicField(OwlViTProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(OwlViTProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -29499,6 +29381,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
 `;
       }
       class PaliGemmaProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static uses_processor_config = false;
         /**
          * @typedef {import('../../utils/image.js').RawImage} RawImage
          */
@@ -29550,9 +29435,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(PaliGemmaProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(PaliGemmaProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(PaliGemmaProcessor, "uses_processor_config", false);
     }
   ),
   /***/
@@ -29586,9 +29468,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       const EPSILON = 1e-5;
       class ParakeetFeatureExtractor extends _base_feature_extraction_utils_js__WEBPACK_IMPORTED_MODULE_0__.FeatureExtractor {
         constructor(config) {
-          var _a2;
           super(config);
-          (_a2 = this.config).mel_filters ?? (_a2.mel_filters = (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.mel_filter_bank)(
+          this.config.mel_filters ??= (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.mel_filter_bank)(
             Math.floor(1 + this.config.n_fft / 2),
             // num_frequency_bins
             this.config.feature_size,
@@ -29603,7 +29484,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
             // norm
             "slaney"
             // mel_scale
-          ));
+          );
           const window2 = (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.window_function)(this.config.win_length, "hann", {
             periodic: false
           });
@@ -29766,7 +29647,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         async _call(images, {
           num_crops = null
         } = {}) {
-          this._num_crops = num_crops ?? (num_crops = this.config.num_crops);
+          this._num_crops = num_crops ??= this.config.num_crops;
           if (num_crops < 4 || sqrt(num_crops) % 1 !== 0) {
             throw new Error("num_crops must be a square number >= 4");
           }
@@ -29872,6 +29753,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       const IMAGE_TOKEN = "<|image|>";
       const IMAGE_TOKEN_PATTERN = /<\|image_\d+\|>/g;
       class Phi3VProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
         /**
          * 
          * @param {string|string[]} text 
@@ -29904,8 +29787,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(Phi3VProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(Phi3VProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
     }
   ),
   /***/
@@ -29984,6 +29865,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/tokenizers.js"
       );
       class PixtralProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static uses_processor_config = true;
         /**
          * @typedef {import('../../utils/image.js').RawImage} RawImage
          */
@@ -30015,9 +29899,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(PixtralProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
-      __publicField(PixtralProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(PixtralProcessor, "uses_processor_config", true);
     }
   ),
   /***/
@@ -30402,6 +30283,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/models/pyannote/feature_extraction_pyannote.js"
       );
       class PyAnnoteProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static feature_extractor_class = _feature_extraction_pyannote_js__WEBPACK_IMPORTED_MODULE_1__.PyAnnoteFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given audio input.
          * @param {any} audio The audio input to extract features from.
@@ -30421,7 +30303,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return this.feature_extractor.config.sampling_rate;
         }
       }
-      __publicField(PyAnnoteProcessor, "feature_extractor_class", _feature_extraction_pyannote_js__WEBPACK_IMPORTED_MODULE_1__.PyAnnoteFeatureExtractor);
     }
   ),
   /***/
@@ -30518,6 +30399,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/utils/image.js"
       );
       class Qwen2VLProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer;
         /**
          * 
          * @param {string|string[]} text 
@@ -30554,8 +30437,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(Qwen2VLProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
-      __publicField(Qwen2VLProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_2__.AutoTokenizer);
     }
   ),
   /***/
@@ -30826,6 +30707,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/models/auto/image_processing_auto.js"
       );
       class SamProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static image_processor_class = _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor;
         async _call(...args) {
           return await this.image_processor(...args);
         }
@@ -30836,7 +30718,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return this.image_processor.reshape_input_points(...args);
         }
       }
-      __publicField(SamProcessor, "image_processor_class", _auto_image_processing_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoImageProcessor);
     }
   ),
   /***/
@@ -31281,6 +31162,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/models/auto/feature_extraction_auto.js"
       );
       class SpeechT5Processor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_0__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_2__.AutoFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given input.
          * @param {any} input The input to extract features from.
@@ -31290,8 +31173,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return await this.feature_extractor(input);
         }
       }
-      __publicField(SpeechT5Processor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer);
-      __publicField(SpeechT5Processor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_2__.AutoFeatureExtractor);
     }
   ),
   /***/
@@ -31362,6 +31243,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/base/processing_utils.js"
       );
       class UltravoxProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor;
+        static uses_processor_config = true;
         /**
          * @param {string} text The text input to process.
          * @param {Float32Array} audio The audio input to process.
@@ -31397,9 +31281,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(UltravoxProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer);
-      __publicField(UltravoxProcessor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor);
-      __publicField(UltravoxProcessor, "uses_processor_config", true);
     }
   ),
   /***/
@@ -31629,6 +31510,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         return chunks;
       }
       class VoxtralProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor;
+        static uses_processor_config = false;
         /**
          * @param {string} text The text input to process.
          * @param {Float32Array|Float32Array[]} audio The audio input(s) to process.
@@ -31678,9 +31562,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           };
         }
       }
-      __publicField(VoxtralProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer);
-      __publicField(VoxtralProcessor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor);
-      __publicField(VoxtralProcessor, "uses_processor_config", false);
     }
   ),
   /***/
@@ -31770,6 +31651,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/base/processing_utils.js"
       );
       class Wav2Vec2Processor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_0__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given audio input.
          * @param {any} audio The audio input to extract features from.
@@ -31779,8 +31662,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return await this.feature_extractor(audio);
         }
       }
-      __publicField(Wav2Vec2Processor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_0__.AutoTokenizer);
-      __publicField(Wav2Vec2Processor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoFeatureExtractor);
     }
   ),
   /***/
@@ -31812,6 +31693,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/base/processing_utils.js"
       );
       class Wav2Vec2ProcessorWithLM extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_0__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given audio input.
          * @param {any} audio The audio input to extract features from.
@@ -31821,8 +31704,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return await this.feature_extractor(audio);
         }
       }
-      __publicField(Wav2Vec2ProcessorWithLM, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_0__.AutoTokenizer);
-      __publicField(Wav2Vec2ProcessorWithLM, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_1__.AutoFeatureExtractor);
     }
   ),
   /***/
@@ -32145,9 +32026,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       );
       class WhisperFeatureExtractor extends _base_feature_extraction_utils_js__WEBPACK_IMPORTED_MODULE_0__.FeatureExtractor {
         constructor(config) {
-          var _a2;
           super(config);
-          (_a2 = this.config).mel_filters ?? (_a2.mel_filters = (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.mel_filter_bank)(
+          this.config.mel_filters ??= (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.mel_filter_bank)(
             Math.floor(1 + this.config.n_fft / 2),
             // num_frequency_bins
             this.config.feature_size,
@@ -32162,7 +32042,7 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
             // norm
             "slaney"
             // mel_scale
-          ));
+          );
           this.window = (0, _utils_audio_js__WEBPACK_IMPORTED_MODULE_2__.window_function)(this.config.n_fft, "hann");
         }
         /**
@@ -32252,78 +32132,75 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/generation/configuration_utils.js"
       );
       class WhisperGenerationConfig extends _generation_configuration_utils_js__WEBPACK_IMPORTED_MODULE_0__.GenerationConfig {
-        constructor() {
-          super(...arguments);
-          /**
-           * Whether to return the timestamps with the text. This enables the `WhisperTimestampsLogitsProcessor`.
-           * @type {boolean}
-           */
-          __publicField(this, "return_timestamps", null);
-          /**
-           * Whether to return token-level timestamps
-           * with the text. This can be used with or without the `return_timestamps` option. To get word-level
-           * timestamps, use the tokenizer to group the tokens into words.
-           * @type {boolean}
-           */
-          __publicField(this, "return_token_timestamps", null);
-          /**
-           * The number of audio frames available in this chunk. This is only used generating word-level timestamps.
-           * @type {number}
-           */
-          __publicField(this, "num_frames", null);
-          /**
-           * Alignment heads to predict word-level timestamps. This is a list of [layer, head] pairs that
-           * select the cross-attention heads that are highly correlated to word-level timing.
-           * @type {[number, number][]}
-           */
-          __publicField(this, "alignment_heads", null);
-          /**
-           * Task to use for generation, either "translate" or "transcribe".
-           * @type {string}
-           */
-          __publicField(this, "task", null);
-          /**
-           * Language token to use for generation, can be either in the form of `<|en|>`, `en` or `english`.
-           * You can find all the possible language tokens in the `model.generation_config.lang_to_id` dictionary.
-           * @type {string}
-           */
-          __publicField(this, "language", null);
-          /**
-           * The id of the `"<|notimestamps|>"` token.
-           * @type {number}
-           */
-          __publicField(this, "no_timestamps_token_id", null);
-          /**
-           * Rank-1 list of token IDs created by passing text to [`~WhisperProcessor.get_prompt_ids`] that is
-           * provided as a prompt to each chunk. This can be used to provide or "prompt-engineer" a context for
-           * transcription, e.g. custom vocabularies or proper nouns to make it more likely to predict those words
-           * correctly. It cannot be used in conjunction with `decoder_start_token_id` as it overwrites this value.
-           * @type {number[]}
-           */
-          __publicField(this, "prompt_ids", null);
-          /**
-           * Whether the model is multilingual or not.
-           * @type {boolean}
-           */
-          __publicField(this, "is_multilingual", null);
-          /**
-           * (Optional) A mapping from language tokens to their corresponding IDs.
-           * Only required if the model is multilingual.
-           * @type {Record<string, number>|null}
-           */
-          __publicField(this, "lang_to_id", null);
-          /**
-           * (Optional) A mapping from task tokens to their corresponding IDs.
-           * @type {Record<string, number>|null}
-           */
-          __publicField(this, "task_to_id", null);
-          /**
-           * Used to set the maximum value of the initial timestamp. This is used to prevent the model from
-           * predicting timestamps that are too far in the future.
-           * @type {number}
-           */
-          __publicField(this, "max_initial_timestamp_index", 1);
-        }
+        /**
+         * Whether to return the timestamps with the text. This enables the `WhisperTimestampsLogitsProcessor`.
+         * @type {boolean}
+         */
+        return_timestamps = null;
+        /**
+         * Whether to return token-level timestamps
+         * with the text. This can be used with or without the `return_timestamps` option. To get word-level
+         * timestamps, use the tokenizer to group the tokens into words.
+         * @type {boolean}
+         */
+        return_token_timestamps = null;
+        /**
+         * The number of audio frames available in this chunk. This is only used generating word-level timestamps.
+         * @type {number}
+         */
+        num_frames = null;
+        /**
+         * Alignment heads to predict word-level timestamps. This is a list of [layer, head] pairs that
+         * select the cross-attention heads that are highly correlated to word-level timing.
+         * @type {[number, number][]}
+         */
+        alignment_heads = null;
+        /**
+         * Task to use for generation, either "translate" or "transcribe".
+         * @type {string}
+         */
+        task = null;
+        /**
+         * Language token to use for generation, can be either in the form of `<|en|>`, `en` or `english`.
+         * You can find all the possible language tokens in the `model.generation_config.lang_to_id` dictionary.
+         * @type {string}
+         */
+        language = null;
+        /**
+         * The id of the `"<|notimestamps|>"` token.
+         * @type {number}
+         */
+        no_timestamps_token_id = null;
+        /**
+         * Rank-1 list of token IDs created by passing text to [`~WhisperProcessor.get_prompt_ids`] that is
+         * provided as a prompt to each chunk. This can be used to provide or "prompt-engineer" a context for
+         * transcription, e.g. custom vocabularies or proper nouns to make it more likely to predict those words
+         * correctly. It cannot be used in conjunction with `decoder_start_token_id` as it overwrites this value.
+         * @type {number[]}
+         */
+        prompt_ids = null;
+        /**
+         * Whether the model is multilingual or not.
+         * @type {boolean}
+         */
+        is_multilingual = null;
+        /**
+         * (Optional) A mapping from language tokens to their corresponding IDs.
+         * Only required if the model is multilingual.
+         * @type {Record<string, number>|null}
+         */
+        lang_to_id = null;
+        /**
+         * (Optional) A mapping from task tokens to their corresponding IDs.
+         * @type {Record<string, number>|null}
+         */
+        task_to_id = null;
+        /**
+         * Used to set the maximum value of the initial timestamp. This is used to prevent the model from
+         * predicting timestamps that are too far in the future.
+         * @type {number}
+         */
+        max_initial_timestamp_index = 1;
       }
     }
   ),
@@ -32356,6 +32233,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         "./src/base/processing_utils.js"
       );
       class WhisperProcessor extends _base_processing_utils_js__WEBPACK_IMPORTED_MODULE_2__.Processor {
+        static tokenizer_class = _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer;
+        static feature_extractor_class = _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor;
         /**
          * Calls the feature_extractor function with the given audio input.
          * @param {any} audio The audio input to extract features from.
@@ -32365,8 +32244,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return await this.feature_extractor(audio);
         }
       }
-      __publicField(WhisperProcessor, "tokenizer_class", _tokenizers_js__WEBPACK_IMPORTED_MODULE_1__.AutoTokenizer);
-      __publicField(WhisperProcessor, "feature_extractor_class", _auto_feature_extraction_auto_js__WEBPACK_IMPORTED_MODULE_0__.AutoFeatureExtractor);
     }
   ),
   /***/
@@ -32451,6 +32328,10 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         );
       };
       class TensorOpRegistry {
+        static session_options = {
+          // TODO: Allow for multiple execution providers
+          // executionProviders: ['webgpu'],
+        };
         static get nearest_interpolate_4d() {
           if (!this._nearest_interpolate_4d) {
             this._nearest_interpolate_4d = wrap(
@@ -32537,10 +32418,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return this._slice;
         }
       }
-      __publicField(TensorOpRegistry, "session_options", {
-        // TODO: Allow for multiple execution providers
-        // executionProviders: ['webgpu'],
-      });
     }
   ),
   /***/
@@ -32998,14 +32875,14 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       }
       class Text2TextGenerationPipeline extends /** @type {new (options: TextPipelineConstructorArgs) => Text2TextGenerationPipelineType} */
       Pipeline {
+        /** @type {'generated_text'} */
+        _key = "generated_text";
         /**
          * Create a new Text2TextGenerationPipeline.
          * @param {TextPipelineConstructorArgs} options An object used to instantiate the pipeline.
          */
         constructor(options) {
           super(options);
-          /** @type {'generated_text'} */
-          __publicField(this, "_key", "generated_text");
         }
         /** @type {Text2TextGenerationPipelineCallback} */
         async _call(texts, generate_kwargs = {}) {
@@ -33045,27 +32922,27 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       class SummarizationPipeline extends /** @type {new (options: TextPipelineConstructorArgs) => SummarizationPipelineType} */
       /** @type {any} */
       Text2TextGenerationPipeline {
+        /** @type {'summary_text'} */
+        _key = "summary_text";
         /**
          * Create a new SummarizationPipeline.
          * @param {TextPipelineConstructorArgs} options An object used to instantiate the pipeline.
          */
         constructor(options) {
           super(options);
-          /** @type {'summary_text'} */
-          __publicField(this, "_key", "summary_text");
         }
       }
       class TranslationPipeline extends /** @type {new (options: TextPipelineConstructorArgs) => TranslationPipelineType} */
       /** @type {any} */
       Text2TextGenerationPipeline {
+        /** @type {'translation_text'} */
+        _key = "translation_text";
         /**
          * Create a new TranslationPipeline.
          * @param {TextPipelineConstructorArgs} options An object used to instantiate the pipeline.
          */
         constructor(options) {
           super(options);
-          /** @type {'translation_text'} */
-          __publicField(this, "_key", "translation_text");
         }
       }
       function isChat(x2) {
@@ -33967,13 +33844,13 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       }
       class TextToAudioPipeline extends /** @type {new (options: TextToAudioPipelineConstructorArgs) => TextToAudioPipelineType} */
       Pipeline {
+        DEFAULT_VOCODER_ID = "Xenova/speecht5_hifigan";
         /**
          * Create a new TextToAudioPipeline.
          * @param {TextToAudioPipelineConstructorArgs} options An object used to instantiate the pipeline.
          */
         constructor(options) {
           super(options);
-          __publicField(this, "DEFAULT_VOCODER_ID", "Xenova/speecht5_hifigan");
           this.vocoder = options.vocoder ?? null;
         }
         async _prepare_speaker_embeddings(speaker_embeddings) {
@@ -35479,14 +35356,11 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         }
       }
       class UnicodeNormalizer extends Normalizer {
-        constructor() {
-          super(...arguments);
-          /**
-           * @type {string} The Unicode normalization form to apply.
-           * Should be one of: 'NFC', 'NFD', 'NFKC', or 'NFKD'.
-           */
-          __publicField(this, "form");
-        }
+        /**
+         * @type {string} The Unicode normalization form to apply.
+         * Should be one of: 'NFC', 'NFD', 'NFKC', or 'NFKD'.
+         */
+        form = void 0;
         /**
          * Normalize the input text by applying Unicode normalization.
          * @param {string} text The input text to be normalized.
@@ -35498,28 +35372,16 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         }
       }
       class NFC extends UnicodeNormalizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "form", "NFC");
-        }
+        form = "NFC";
       }
       class NFD extends UnicodeNormalizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "form", "NFD");
-        }
+        form = "NFD";
       }
       class NFKC extends UnicodeNormalizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "form", "NFKC");
-        }
+        form = "NFKC";
       }
       class NFKD extends UnicodeNormalizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "form", "NFKD");
-        }
+        form = "NFKD";
       }
       class StripNormalizer extends Normalizer {
         /**
@@ -36578,6 +36440,8 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         }
       }
       class PreTrainedTokenizer extends _utils_generic_js__WEBPACK_IMPORTED_MODULE_0__.Callable {
+        return_token_type_ids = false;
+        padding_side = "right";
         /**
          * Create a new PreTrainedTokenizer instance.
          * @param {Object} tokenizerJSON The JSON of the tokenizer.
@@ -36585,8 +36449,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
          */
         constructor(tokenizerJSON, tokenizerConfig) {
           super();
-          __publicField(this, "return_token_type_ids", false);
-          __publicField(this, "padding_side", "right");
           this.config = tokenizerConfig;
           this.normalizer = Normalizer.fromConfig(tokenizerJSON.normalizer);
           this.pre_tokenizer = PreTokenizer.fromConfig(tokenizerJSON.pre_tokenizer);
@@ -37177,75 +37039,45 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         }
       }
       class BertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class AlbertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class MobileBertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class SqueezeBertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class DebertaTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class DebertaV2Tokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class HerbertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class ConvBertTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class RoFormerTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class DistilBertTokenizer extends PreTrainedTokenizer {
       }
       class CamembertTokenizer extends PreTrainedTokenizer {
       }
       class XLMTokenizer extends PreTrainedTokenizer {
+        return_token_type_ids = true;
         constructor(tokenizerJSON, tokenizerConfig) {
           super(tokenizerJSON, tokenizerConfig);
-          __publicField(this, "return_token_type_ids", true);
           console.warn('WARNING: `XLMTokenizer` is not yet supported by Hugging Face\'s "fast" tokenizers library. Therefore, you may experience slightly inaccurate results.');
         }
       }
       class ElectraTokenizer extends PreTrainedTokenizer {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "return_token_type_ids", true);
-        }
+        return_token_type_ids = true;
       }
       class T5Tokenizer extends PreTrainedTokenizer {
       }
@@ -37279,9 +37111,9 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       }
       const SPIECE_UNDERLINE = "\u2581";
       class LlamaTokenizer extends PreTrainedTokenizer {
+        padding_side = "left";
         constructor(tokenizerJSON, tokenizerConfig) {
           super(tokenizerJSON, tokenizerConfig);
-          __publicField(this, "padding_side", "left");
           this.legacy = tokenizerConfig.legacy ?? true;
           if (!this.legacy) {
             this.normalizer = null;
@@ -37905,6 +37737,55 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
       class MgpstrTokenizer extends PreTrainedTokenizer {
       }
       class AutoTokenizer {
+        static TOKENIZER_CLASS_MAPPING = {
+          T5Tokenizer,
+          DistilBertTokenizer,
+          CamembertTokenizer,
+          DebertaTokenizer,
+          DebertaV2Tokenizer,
+          BertTokenizer,
+          HerbertTokenizer,
+          ConvBertTokenizer,
+          RoFormerTokenizer,
+          XLMTokenizer,
+          ElectraTokenizer,
+          MobileBertTokenizer,
+          SqueezeBertTokenizer,
+          AlbertTokenizer,
+          GPT2Tokenizer,
+          BartTokenizer,
+          MBartTokenizer,
+          MBart50Tokenizer,
+          RobertaTokenizer,
+          WhisperTokenizer,
+          CodeGenTokenizer,
+          CLIPTokenizer,
+          SiglipTokenizer,
+          MarianTokenizer,
+          BloomTokenizer,
+          NllbTokenizer,
+          M2M100Tokenizer,
+          LlamaTokenizer,
+          CodeLlamaTokenizer,
+          XLMRobertaTokenizer,
+          MPNetTokenizer,
+          FalconTokenizer,
+          GPTNeoXTokenizer,
+          EsmTokenizer,
+          Wav2Vec2CTCTokenizer,
+          BlenderbotTokenizer,
+          BlenderbotSmallTokenizer,
+          SpeechT5Tokenizer,
+          NougatTokenizer,
+          VitsTokenizer,
+          Qwen2Tokenizer,
+          GemmaTokenizer,
+          Grok1Tokenizer,
+          CohereTokenizer,
+          MgpstrTokenizer,
+          // Base case:
+          PreTrainedTokenizer
+        };
         /**
          * Instantiate one of the tokenizer classes of the library from a pretrained model.
          * 
@@ -37945,55 +37826,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
           return new cls(tokenizerJSON, tokenizerConfig);
         }
       }
-      __publicField(AutoTokenizer, "TOKENIZER_CLASS_MAPPING", {
-        T5Tokenizer,
-        DistilBertTokenizer,
-        CamembertTokenizer,
-        DebertaTokenizer,
-        DebertaV2Tokenizer,
-        BertTokenizer,
-        HerbertTokenizer,
-        ConvBertTokenizer,
-        RoFormerTokenizer,
-        XLMTokenizer,
-        ElectraTokenizer,
-        MobileBertTokenizer,
-        SqueezeBertTokenizer,
-        AlbertTokenizer,
-        GPT2Tokenizer,
-        BartTokenizer,
-        MBartTokenizer,
-        MBart50Tokenizer,
-        RobertaTokenizer,
-        WhisperTokenizer,
-        CodeGenTokenizer,
-        CLIPTokenizer,
-        SiglipTokenizer,
-        MarianTokenizer,
-        BloomTokenizer,
-        NllbTokenizer,
-        M2M100Tokenizer,
-        LlamaTokenizer,
-        CodeLlamaTokenizer,
-        XLMRobertaTokenizer,
-        MPNetTokenizer,
-        FalconTokenizer,
-        GPTNeoXTokenizer,
-        EsmTokenizer,
-        Wav2Vec2CTCTokenizer,
-        BlenderbotTokenizer,
-        BlenderbotSmallTokenizer,
-        SpeechT5Tokenizer,
-        NougatTokenizer,
-        VitsTokenizer,
-        Qwen2Tokenizer,
-        GemmaTokenizer,
-        Grok1Tokenizer,
-        CohereTokenizer,
-        MgpstrTokenizer,
-        // Base case:
-        PreTrainedTokenizer
-      });
     }
   ),
   /***/
@@ -39167,12 +38999,11 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
          * @private
          */
         _buildTrie(dictionary) {
-          var _a2;
           const trie = /* @__PURE__ */ Object.create(null);
           for (const word of dictionary) {
             let node = trie;
             for (let i3 = 0; i3 < word.length; ++i3) {
-              node = node[_a2 = word[i3]] ?? (node[_a2] = /* @__PURE__ */ Object.create(null));
+              node = node[word[i3]] ??= /* @__PURE__ */ Object.create(null);
             }
             node.end = word;
           }
@@ -41647,12 +41478,35 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
         int4: Int8Array
       });
       class Tensor3 {
+        /** @type {number[]} Dimensions of the tensor. */
+        get dims() {
+          return this.ort_tensor.dims;
+        }
+        set dims(value) {
+          this.ort_tensor.dims = value;
+        }
+        /** @type {DataType} Type of the tensor. */
+        get type() {
+          return this.ort_tensor.type;
+        }
+        /** @type {DataArray} The data stored in the tensor. */
+        get data() {
+          return this.ort_tensor.data;
+        }
+        /** @type {number} The number of elements in the tensor. */
+        get size() {
+          return this.ort_tensor.size;
+        }
+        /** @type {string} The location of the tensor data. */
+        get location() {
+          return this.ort_tensor.location;
+        }
+        ort_tensor;
         /**
          * Create a new Tensor or copy an existing Tensor.
          * @param {[DataType, DataArray, number[]]|[ONNXTensor]} args
          */
         constructor(...args) {
-          __publicField(this, "ort_tensor");
           if ((0, _backends_onnx_js__WEBPACK_IMPORTED_MODULE_1__.isONNXTensor)(args[0])) {
             this.ort_tensor = /** @type {ONNXTensor} */
             args[0];
@@ -41680,29 +41534,6 @@ ${fake_token_around_image}${global_img_token}` + image_token.repeat(image_seq_le
               return obj[key] = value;
             }
           });
-        }
-        /** @type {number[]} Dimensions of the tensor. */
-        get dims() {
-          return this.ort_tensor.dims;
-        }
-        set dims(value) {
-          this.ort_tensor.dims = value;
-        }
-        /** @type {DataType} Type of the tensor. */
-        get type() {
-          return this.ort_tensor.type;
-        }
-        /** @type {DataArray} The data stored in the tensor. */
-        get data() {
-          return this.ort_tensor.data;
-        }
-        /** @type {number} The number of elements in the tensor. */
-        get size() {
-          return this.ort_tensor.size;
-        }
-        /** @type {string} The location of the tensor data. */
-        get location() {
-          return this.ort_tensor.location;
         }
         dispose() {
           this.ort_tensor.dispose();
@@ -66775,7 +66606,8 @@ function shape(x2, sr, sh2) {
   if (sh2.trim) x2 = trimSilence(x2, sr);
   const hop = Math.round(sr * 5e-3), f3 = pitchTrack(x2, sr, hop), f0 = median(f3) || 0;
   const sing = Array.isArray(sh2.notes) && sh2.notes.length;
-  if (!sing && !sh2.expr && !sh2.fry && (!sh2.ratio || Math.abs(sh2.ratio - 1) < 4e-3)) return { pcm: x2, f0 };
+  const tract = Math.max(0.8, Math.min(1.3, +sh2.tract || 1)), trem = Math.max(0, Math.min(1, +sh2.tremble || 0)), robo = Math.max(0, Math.min(1, +sh2.robot || 0));
+  if (!sing && !sh2.expr && !sh2.fry && Math.abs(tract - 1) < 0.01 && !trem && !robo && (!sh2.ratio || Math.abs(sh2.ratio - 1) < 4e-3)) return { pcm: x2, f0 };
   const N3 = x2.length, nF = f3.length;
   const voicedF = (i3) => f3[Math.min(nF - 1, Math.max(0, i3))] > 0;
   const per = (i3) => {
@@ -66886,15 +66718,37 @@ function shape(x2, sr, sh2) {
       if (!sing && sh2.expr && f0 > 0) ratio = (ratio || 1) * Math.max(0.72, Math.min(1.3, Math.pow(Math.max(0.6, Math.min(1.7, sr / pa2 / f0)), sh2.expr - 1)));
       const fryOn = !sing && sh2.fry && ts2 > L2 * 0.72;
       if (fryOn) ratio = (ratio || 1) * 0.8;
+      if (!sing && robo && f0 > 0) {
+        const flat = f0 * (sh2.ratio || 1) / (sr / pa2);
+        ratio = Math.pow(ratio || 1, 1 - robo) * Math.pow(flat, robo);
+      }
+      if (!sing && trem) {
+        const tt2 = ts2 / sr;
+        ratio = (ratio || 1) * Math.pow(2, trem * (55 * Math.sin(2 * Math.PI * 2.1 * tt2) + 14 * Math.sin(2 * Math.PI * 5.6 * tt2 + 1.3)) / 1200);
+      }
       ratio = Math.max(0.5, Math.min(2.2, ratio || 1));
       step = pa2 / ratio * (sing ? 1 + (rnd() - 0.5) * 0.01 : fryOn ? 1 + (rnd() - 0.5) * 0.35 : 1);
-      const half = Math.round(pa2), w0 = Math.min(1, step / pa2) * (sing ? 1 + (rnd() - 0.5) * 0.04 : fryOn ? rnd() < 0.5 ? 0.55 : 1.15 : 1), d0 = Math.round(ts2);
-      for (let k4 = -half; k4 <= half; k4++) {
-        const di = d0 + k4;
-        if (di < 0 || di >= y3.length) continue;
-        const a0 = m0 + k4, a1 = m1 + k4;
-        const v0 = a0 >= 0 && a0 < N3 ? x2[a0] : 0, v1 = a1 >= 0 && a1 < N3 ? x2[a1] : 0;
-        y3[di] += (v0 * (1 - fr2) + v1 * fr2) * w0 * (0.5 + 0.5 * Math.cos(Math.PI * k4 / half));
+      const d0 = Math.round(ts2);
+      if (Math.abs(tract - 1) < 0.01) {
+        const half = Math.round(pa2), w0 = Math.min(1, step / pa2) * (sing ? 1 + (rnd() - 0.5) * 0.04 : fryOn ? rnd() < 0.5 ? 0.55 : 1.15 : 1);
+        for (let k4 = -half; k4 <= half; k4++) {
+          const di = d0 + k4;
+          if (di < 0 || di >= y3.length) continue;
+          const a0 = m0 + k4, a1 = m1 + k4;
+          const v0 = a0 >= 0 && a0 < N3 ? x2[a0] : 0, v1 = a1 >= 0 && a1 < N3 ? x2[a1] : 0;
+          y3[di] += (v0 * (1 - fr2) + v1 * fr2) * w0 * (0.5 + 0.5 * Math.cos(Math.PI * k4 / half));
+        }
+      } else {
+        const half = Math.max(8, Math.round(pa2 / tract)), w0 = Math.min(1, step / half) * (fryOn ? rnd() < 0.5 ? 0.55 : 1.15 : 1);
+        const rd2 = (a2) => {
+          const i0 = Math.floor(a2), f22 = a2 - i0;
+          return i0 >= 0 && i0 + 1 < N3 ? x2[i0] + (x2[i0 + 1] - x2[i0]) * f22 : 0;
+        };
+        for (let k4 = -half; k4 <= half; k4++) {
+          const di = d0 + k4;
+          if (di < 0 || di >= y3.length) continue;
+          y3[di] += (rd2(m0 + k4 * tract) * (1 - fr2) + rd2(m1 + k4 * tract) * fr2) * w0 * (0.5 + 0.5 * Math.cos(Math.PI * k4 / half));
+        }
       }
     } else {
       const half = Math.round(sr * 5e-3);
@@ -67220,9 +67074,189 @@ self.fetch = (input, init) => {
 function allowCustom(t2) {
   if (t2._cvPatched) return;
   const orig = t2._validate_voice.bind(t2);
-  t2._validate_voice = (v3) => /^cv_/.test(v3) ? "a" : orig(v3);
+  t2._validate_voice = (v3) => /^cv_/.test(v3) ? CUSTOM_LANG.get(v3) || "a" : orig(v3);
   t2._cvPatched = true;
 }
+function biquad(type, sr, f3, q2, gainDb) {
+  const A3 = Math.pow(10, (gainDb || 0) / 40), w3 = 2 * Math.PI * Math.min(f3, sr * 0.45) / sr, cs2 = Math.cos(w3), sn2 = Math.sin(w3), al2 = sn2 / (2 * (q2 || 0.707));
+  let b0, b1, b22, a0, a1, a2;
+  if (type === "lp") {
+    b0 = (1 - cs2) / 2;
+    b1 = 1 - cs2;
+    b22 = b0;
+    a0 = 1 + al2;
+    a1 = -2 * cs2;
+    a2 = 1 - al2;
+  } else if (type === "hp") {
+    b0 = (1 + cs2) / 2;
+    b1 = -(1 + cs2);
+    b22 = b0;
+    a0 = 1 + al2;
+    a1 = -2 * cs2;
+    a2 = 1 - al2;
+  } else if (type === "peak") {
+    b0 = 1 + al2 * A3;
+    b1 = -2 * cs2;
+    b22 = 1 - al2 * A3;
+    a0 = 1 + al2 / A3;
+    a1 = -2 * cs2;
+    a2 = 1 - al2 / A3;
+  } else {
+    const s22 = 2 * Math.sqrt(A3) * al2;
+    b0 = A3 * (A3 + 1 + (A3 - 1) * cs2 + s22);
+    b1 = -2 * A3 * (A3 - 1 + (A3 + 1) * cs2);
+    b22 = A3 * (A3 + 1 + (A3 - 1) * cs2 - s22);
+    a0 = A3 + 1 - (A3 - 1) * cs2 + s22;
+    a1 = 2 * (A3 - 1 - (A3 + 1) * cs2);
+    a2 = A3 + 1 - (A3 - 1) * cs2 - s22;
+  }
+  const c3 = [b0 / a0, b1 / a0, b22 / a0, a1 / a0, a2 / a0];
+  return (x2) => {
+    let x1 = 0, x22 = 0, y1 = 0, y22 = 0;
+    for (let i3 = 0; i3 < x2.length; i3++) {
+      const v3 = x2[i3], o3 = c3[0] * v3 + c3[1] * x1 + c3[2] * x22 - c3[3] * y1 - c3[4] * y22;
+      x22 = x1;
+      x1 = v3;
+      y22 = y1;
+      y1 = o3;
+      x2[i3] = o3;
+    }
+    return x2;
+  };
+}
+var cl01 = (v3) => Math.max(0, Math.min(1, +v3 || 0));
+function voiceFx(x2, sr, fx, seed) {
+  if (!fx) return x2;
+  const br2 = cl01(fx.breath) * 0.6, ra2 = cl01(fx.rasp) * 0.6, na2 = cl01(fx.nasal), mu2 = cl01(fx.muffle) * 0.75, bri = Math.max(-1, Math.min(1, +fx.bright || 0)), ro2 = cl01(fx.robot), ech = cl01(fx.echo) * 0.6;
+  if (!br2 && !ra2 && !na2 && !mu2 && !bri && !ro2 && !ech) return x2;
+  let pk0 = 0;
+  for (let i3 = 0; i3 < x2.length; i3++) pk0 = Math.max(pk0, Math.abs(x2[i3]));
+  if (!pk0) return x2;
+  const rnd = mkRnd(seed || 7), y3 = x2;
+  if (na2) {
+    biquad("peak", sr, 1150, 1.6, 7 * na2)(y3);
+    biquad("peak", sr, 480, 1.4, -5 * na2)(y3);
+  }
+  if (mu2) biquad("lp", sr, 7e3 - 4600 * mu2, 0.7)(y3);
+  if (bri) biquad("shelf", sr, 3200, 0.7, 6 * bri)(y3);
+  if (ra2) {
+    let lfo = 0, tgt = 0;
+    const drive = 1 + 5 * ra2;
+    for (let i3 = 0; i3 < y3.length; i3++) {
+      if (i3 % 180 === 0) tgt = rnd();
+      lfo += (tgt - lfo) * 0.02;
+      const v3 = Math.tanh(y3[i3] * drive) / Math.tanh(drive);
+      y3[i3] = (y3[i3] * (1 - ra2) + v3 * ra2) * (1 - ra2 * 0.45 * lfo);
+    }
+  }
+  if (br2) {
+    const n2 = new Float32Array(y3.length);
+    for (let i3 = 0; i3 < n2.length; i3++) n2[i3] = rnd() * 2 - 1;
+    biquad("hp", sr, 1800, 0.7)(n2);
+    biquad("lp", sr, 7500, 0.7)(n2);
+    let env3 = 0;
+    for (let i3 = 0; i3 < y3.length; i3++) {
+      env3 = Math.max(Math.abs(y3[i3]), env3 * 0.9985);
+      y3[i3] = y3[i3] * (1 - br2 * 0.25) + n2[i3] * env3 * br2 * 0.55;
+    }
+  }
+  if (ro2) {
+    const d3 = Math.round(sr * 35e-4), buf = new Float32Array(d3);
+    let bi = 0;
+    const fb = 0.45 * ro2, f3 = 2 * Math.PI * 70 / sr;
+    for (let i3 = 0; i3 < y3.length; i3++) {
+      const dl2 = buf[bi];
+      const o3 = y3[i3] + dl2 * fb;
+      buf[bi] = o3;
+      bi = (bi + 1) % d3;
+      y3[i3] = o3 * (1 - 0.35 * ro2 + 0.35 * ro2 * Math.sin(f3 * i3));
+    }
+  }
+  if (ech) {
+    const d3 = Math.round(sr * 0.085), src = y3.slice(0);
+    for (let i3 = d3; i3 < y3.length; i3++) y3[i3] += src[i3 - d3] * ech * 0.45;
+  }
+  let pk = 0;
+  for (let i3 = 0; i3 < y3.length; i3++) pk = Math.max(pk, Math.abs(y3[i3]));
+  if (pk) {
+    const g3 = pk0 / pk;
+    for (let i3 = 0; i3 < y3.length; i3++) y3[i3] *= g3;
+  }
+  return y3;
+}
+var MUMBLE_V = { A: [730, 1090, 2440], E: [530, 1840, 2480], I: [270, 2290, 3010], O: [570, 840, 2410], OO: [300, 870, 2240], U: [640, 1190, 2390] };
+function mumbleVowel(cl2) {
+  cl2 = cl2.toLowerCase();
+  if (/oo|ou|ew|ue/.test(cl2)) return "OO";
+  if (/ee|ea|ie|ey|^y$|^i$/.test(cl2)) return "I";
+  const c3 = cl2[0];
+  return c3 === "a" ? "A" : c3 === "e" ? "E" : c3 === "i" ? "I" : c3 === "o" ? "O" : c3 === "u" ? "U" : "E";
+}
+function mumble(text, sr, p3) {
+  text = String(text || "").slice(0, 600);
+  const f0 = Math.max(60, Math.min(700, +p3.f0 || 160)), tract = Math.max(0.6, Math.min(1.8, +p3.tract || 1)), rate = Math.max(0.5, Math.min(2, +p3.speed || 1));
+  const breath = cl01(p3.breath ?? 0.12), wob = cl01(p3.tremble), seedR = mkRnd(2166136261 ^ text.length * 977 ^ Math.round(f0 * 13));
+  const ev2 = [];
+  let t2 = 0.03, clause = 0, words = text.split(/\s+/);
+  const lastWordStart = text.search(/\S+\s*$/);
+  const qLine = /\?\s*$/.test(text), exLine = /!\s*$/.test(text), fadeLine = /(\.\.\.|…)\s*$/.test(text);
+  for (let i3 = 0; i3 < text.length; i3++) {
+    const ch2 = text[i3];
+    let d3 = 0.033;
+    if (/[,;:]/.test(ch2)) {
+      d3 *= 3;
+      clause = 0;
+    } else if (/[.!?…]/.test(ch2)) {
+      d3 *= 6;
+      clause = 0;
+    } else if (ch2 === " ") d3 *= 1.1;
+    if (/[aeiouy]/i.test(ch2) && !(i3 > 0 && /[aeiouy]/i.test(text[i3 - 1]))) {
+      let j2 = i3;
+      while (j2 < text.length && /[aeiouy]/i.test(text[j2])) j2++;
+      const wsI = text.lastIndexOf(" ", i3) + 1, wEnd = (text.slice(i3).search(/[\s,.;:!?]/) + 1 || text.length - i3 + 1) + i3 - 1, word = text.slice(wsI, wEnd);
+      const caps = word.length > 1 && word === word.toUpperCase() && /[A-Z]/.test(word);
+      let semi = -clause * 0.45 + (exLine ? 2.5 : 0) + (seedR() - 0.5) * 1.2;
+      if (qLine && i3 >= lastWordStart) semi += 4 + 3 * ((i3 - lastWordStart) / Math.max(1, text.length - lastWordStart));
+      ev2.push({ t: t2, v: mumbleVowel(text.slice(i3, j2)), semi, amp: caps ? 1.45 : 1, fade: fadeLine ? 1 - 0.6 * (i3 / text.length) : 1 });
+      clause++;
+    }
+    t2 += d3 / rate;
+  }
+  const L2 = Math.round((t2 + 0.25) * sr), y3 = new Float32Array(L2);
+  const gap = 0.1 / rate;
+  for (let k4 = 0; k4 < ev2.length; k4++) {
+    const e2 = ev2[k4], nextT = k4 + 1 < ev2.length ? ev2[k4 + 1].t : e2.t + gap, dur = Math.min(0.32, Math.max(0.07, (nextT - e2.t) * 1.25));
+    const F3 = MUMBLE_V[e2.v].map((f3) => f3 * tract), BW = [80, 100, 130].map((b3) => b3 * Math.sqrt(tract));
+    const R2 = F3.map((f3, i22) => {
+      const r2 = Math.exp(-Math.PI * BW[i22] / sr), th2 = 2 * Math.PI * f3 / sr;
+      return { a1: 2 * r2 * Math.cos(th2), a2: -r2 * r2, g: (1 - r2) * [1, 0.7, 0.4][i22], y1: 0, y2: 0 };
+    });
+    const s0 = Math.round(e2.t * sr), n2 = Math.round(dur * sr);
+    let ph2 = 0;
+    for (let i3 = 0; i3 < n2 && s0 + i3 < L2; i3++) {
+      const tt2 = (s0 + i3) / sr, a2 = i3 / n2;
+      const env3 = a2 < 0.2 ? Math.sin(a2 / 0.2 * Math.PI / 2) : a2 < 0.65 ? 1 : Math.cos((a2 - 0.65) / 0.35 * Math.PI / 2);
+      const hz = f0 * Math.pow(2, e2.semi / 12) * (1 + (seedR() - 0.5) * 0.012) * (1 + (wob ? 0.035 * wob * Math.sin(2 * Math.PI * 2 * tt2) : 0));
+      ph2 += hz / sr;
+      if (ph2 >= 1) ph2 -= 1;
+      const glot = ph2 < 0.6 ? Math.sin(Math.PI * ph2 / 0.6) ** 2 : 0;
+      const src = (glot - 0.3) * (1 - breath) + (seedR() * 2 - 1) * breath * 0.6;
+      let out = 0;
+      for (const r2 of R2) {
+        const v3 = r2.g * src + r2.a1 * r2.y1 + r2.a2 * r2.y2;
+        r2.y2 = r2.y1;
+        r2.y1 = v3;
+        out += v3;
+      }
+      y3[s0 + i3] += out * env3 * e2.amp * e2.fade;
+    }
+  }
+  let pk = 0;
+  for (let i3 = 0; i3 < L2; i3++) pk = Math.max(pk, Math.abs(y3[i3]));
+  if (pk) for (let i3 = 0; i3 < L2; i3++) y3[i3] *= 0.6 / pk;
+  return y3;
+}
+var CUSTOM_LANG = /* @__PURE__ */ new Map();
 var chain = Promise.resolve();
 self.onmessage = (ev2) => {
   const msg = ev2.data || {};
@@ -67244,11 +67278,27 @@ self.onmessage = (ev2) => {
     return;
   }
   if (msg.type === "gen") {
+    if (msg.mode === "mumble") {
+      try {
+        const sr = 24e3;
+        let pcm = mumble(msg.text, sr, Object.assign({ speed: msg.speed }, msg.mumble || {}));
+        pcm = voiceFx(pcm, sr, msg.fx, msg.seed);
+        postMessage({ type: "audio", id: msg.id, pcm, sr, f0: msg.mumble && msg.mumble.f0 || 0, starts: null, failed: false }, [pcm.buffer]);
+      } catch (e2) {
+        postMessage({ type: "error", id: msg.id, text: String(e2 && e2.message || e2) });
+      }
+      return;
+    }
     chain = chain.then(async () => {
       try {
         const t2 = await load(msg.device);
         allowCustom(t2);
-        if (msg.mix && /^cv_/.test(msg.voice || "")) await makeVoice(msg.voice, msg.mix, msg.seed || 1, msg.vary);
+        if (msg.mix && /^cv_/.test(msg.voice || "")) {
+          await makeVoice(msg.voice, msg.mix, msg.seed || 1, msg.vary);
+          if (msg.lang) CUSTOM_LANG.set(msg.voice, msg.lang);
+        }
+        if (msg.fx && msg.shape && !msg.shape.phrase && !Array.isArray(msg.shape.notes)) msg.shape = Object.assign({}, msg.shape, { tract: msg.fx.tract, tremble: msg.fx.tremble, robot: msg.fx.robot });
+        else if (msg.fx && !msg.shape && (msg.fx.tract || msg.fx.tremble || msg.fx.robot)) msg.shape = { ratio: 1, tract: msg.fx.tract, tremble: msg.fx.tremble, robot: msg.fx.robot };
         const out = await t2.generate(String(msg.text || "").slice(0, 900), { voice: msg.voice || "af_heart", speed: msg.speed || 1 });
         let pcm = out.audio instanceof Float32Array ? out.audio : new Float32Array(out.audio);
         const sr = out.sampling_rate || 24e3;
@@ -67266,6 +67316,7 @@ self.onmessage = (ev2) => {
           pcm = r2.pcm;
           f0 = r2.f0;
         }
+        if (msg.fx) pcm = voiceFx(pcm, sr, msg.fx, msg.seed);
         postMessage({ type: "audio", id: msg.id, pcm, sr, f0, starts, failed }, [pcm.buffer]);
       } catch (e2) {
         postMessage({ type: "error", id: msg.id, text: String(e2 && (e2.stack || e2.message) || e2).slice(0, 600) });

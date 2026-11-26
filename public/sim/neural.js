@@ -63,13 +63,13 @@
 
   function gen(text, voice, speed, shape) {
     text = String(text == null ? '' : text).replace(/[*_~`#|<>\[\]{}^]+/g, ' ').replace(/\s{2,}/g, ' ').trim(); // never read symbols like * aloud
-    if (state !== 'ready' || !worker) return Promise.reject(new Error('neural voice not ready'));
+    var cv = CUSTOM_VOICES[voice], mum = !!(cv && cv.mode === 'mumble');
+    if (!worker || (state !== 'ready' && !(mum && state === 'loading'))) return Promise.reject(new Error('neural voice not ready'));
     var id = nextId++;
     return new Promise(function (res, rej) {
       var now = performance.now(); if (!pending.size) busyUntil = now; pending.set(id, { res: res, rej: rej, t: now });
-      var cv = CUSTOM_VOICES[voice];
-      worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: shape || null, device: device,
-        mix: cv ? cv.mix : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0 });
+      worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: mum ? null : (shape || null), device: device,
+        mix: cv ? cv.mix || null : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0, fx: cv ? cv.fx || null : null, lang: cv ? cv.lang || null : null, mode: mum ? 'mumble' : null, mumble: mum ? cv.mumble : null });
       setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000);
     });
   }
@@ -99,6 +99,7 @@
   function match(spec, key, hint) {
     spec = spec || {}; key = String(key || 'x');
     if (used.has(key) && used.get(key).spec === spec) return used.get(key).pick;
+    var designed = fromDesign(spec, key); if (designed) { used.set(key, { spec: spec, pick: designed }); return designed; }
     var desc = [spec.preset, spec.timbre, spec.label, hint].join(' ').toLowerCase();
     var g = spec.gender === 'female' ? 'f' : spec.gender === 'child' ? 'c' : 'm';
     var gb = /^en-(gb|au|ie|nz)/i.test(spec.accent || '') && !spec.showman && spec.timbre !== 'showman';
@@ -136,6 +137,37 @@
     if (showman) pick.style = { expr: 3.8, eq: 'brassy' }; /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
     used.set(key, { spec: spec, pick: pick });
     return pick;
+  }
+
+  // ---------------------------------------------------------------- AI-designed voices (the hybrid voice)
+  // The AI looks at the character and writes a voice design; it is built in three layers, so the voice is the character's own
+  // and the words stay clear:
+  //  1) WORDS: a new neural voice blended from up to 4 of the model's voices in the AI's own proportions (the model still does the
+  //     pronunciation, so speech stays natural and clear), read with the accent of its main ingredients;
+  //  2) BODY: pitch and vocal-tract size set separately (formant-shifted PSOLA: a giant has a long tract, a pixie a short one,
+  //     so a high voice is a small speaker, not a strained big one), pace, an old-age wobble, a machine's flat melody;
+  //  3) TEXTURE: breath, rasp/growl, nasal, muffled (through a mask or a closed mouth), bright/dark, metallic, hollow echo.
+  //  A creature that does not speak words can use mode "mumble": procedural babble driven by its line's text (see the worker).
+  var ALL = V.usM.concat(V.usF, V.gbM, V.gbF, ['am_santa', 'am_adam']);
+  function num(x, a, b, d) { x = +x; return isFinite(x) ? Math.max(a, Math.min(b, x)) : d; }
+  function fromDesign(spec, key) {
+    var d = spec && spec.design; if (!d || typeof d !== 'object') return null;
+    var h = hash(key + JSON.stringify(d));
+    var mode = d.mode === 'mumble' ? 'mumble' : 'words';
+    var mix = (Array.isArray(d.blend) ? d.blend : []).map(function (b) { return b && typeof b === 'object' ? { voice: String(b.voice || ''), w: num(b.weight != null ? b.weight : b.w, 0, 1, 0) } : null; })
+      .filter(function (b) { return b && b.w > 0 && ALL.indexOf(b.voice) >= 0; }).slice(0, 4);
+    if (mode === 'words' && !mix.length) return null; // no usable blend: the regular matcher picks one
+    var bw = 0, tw = 0; mix.forEach(function (b) { tw += b.w; if (/^b/.test(b.voice)) bw += b.w; });
+    var fx = { tract: num(d.tract, 0.82, 1.25, 1), tremble: num(d.tremble, 0, 1, 0), robot: num(d.robot, 0, 1, 0), breath: num(d.breath, 0, 1, 0), rasp: num(d.rasp, 0, 1, 0), nasal: num(d.nasal, 0, 1, 0), muffle: num(d.muffle, 0, 1, 0), bright: num(d.bright, -1, 1, 0), echo: num(d.echo, 0, 1, 0) };
+    var pitch = num(d.pitch, 0.7, 1.45, 1), pace = num(d.pace, 0.75, 1.35, 1);
+    if (mode === 'mumble') {
+      var mpk = { voice: 'mumble_' + h.toString(36), k: 1, pace: pace, mode: 'mumble' };
+      CUSTOM_VOICES[mpk.voice] = { mode: 'mumble', seed: h, fx: fx, mumble: { f0: num(d.mumble_pitch_hz, 60, 700, 170 * pitch), tract: num(d.tract, 0.6, 1.8, 1), breath: num(d.breath, 0, 1, 0.12), tremble: fx.tremble } };
+      return mpk;
+    }
+    var voice = 'cv_' + String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24) + '_d' + h.toString(36);
+    CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a' };
+    return { voice: voice, k: pitch, pace: pace, mode: 'words' };
   }
 
   // a rough fundamental-frequency estimate of a voiced clip (autocorrelation over the loudest frames)
