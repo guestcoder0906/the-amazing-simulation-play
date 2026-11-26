@@ -52,8 +52,9 @@
 </main>
 <script>
 (function () {
-  // the published Claude artifact (shared as "Anyone with the link")
-  var ARTIFACT_URL = 'https://claude.ai/artifact/4jySABZ5DbznhGAc2EZ9Ls';
+  // the published Claude artifact (shared as "Anyone with the link"), opened in Claude's embed view: the artifact only,
+  // without claude.ai's top bar
+  var ARTIFACT_URL = 'https://claude.ai/artifact/4jySABZ5DbznhGAc2EZ9Ls/embed';
   var start = document.getElementById('start'), confirmBox = document.getElementById('confirm');
   document.getElementById('play').href = ARTIFACT_URL;
   function show(el) { start.hidden = el !== start; confirmBox.hidden = el !== confirmBox; var f = el.querySelector('a,button'); if (f) f.focus(); }
