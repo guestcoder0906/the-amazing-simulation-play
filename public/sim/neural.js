@@ -56,8 +56,9 @@
     var forced = (/[?&]nvdevice=(wasm|webgpu)/.exec(location.search) || [])[1]; if (forced) { go(forced); return; } // debug override
     /* the voice model never runs on the GPU next to the 3D game (the two together could crash the tab): on roomy desktops it runs on the
        CPU with the SAME full-quality fp32 weights ('wasm-full'), so the voices sound exactly the same; small devices keep the compact model */
-    var roomy = !(navigator.deviceMemory < 8) && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent || '');
-    go(roomy ? 'wasm-full' : 'wasm');
+    /* the compact model everywhere: the full fp32 model is 326 MB and several times slower on the CPU, so lines waited for it and
+       then fell back to the built-in voices (or its first speed test failed and switched the natural voices off for the visit) */
+    go('wasm');
   }
 
   function gen(text, voice, speed, shape) {
@@ -156,4 +157,6 @@
     status: status, ready: function () { return state === 'ready'; },
     onStatus: function (f) { listeners.push(f); try { f(status()); } catch (e) { /* ok */ } }
   };
+  // download the natural voices right after the page has loaded (not when the first line is spoken), so they are ready in time
+  (function preload() { var go2 = function () { setTimeout(function () { try { if (state === 'off') start(); } catch (e) { /* ok */ } }, 1500); }; if (document.readyState === 'complete') go2(); else window.addEventListener('load', go2, { once: true }); })();
 })();
