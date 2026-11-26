@@ -121,7 +121,7 @@
     if (show && prefs[0] === 'am_santa') lead = ['am_santa', 'am_michael', 'am_onyx']; /* Caine: mainly santa, with a clear, lively American voice (michael) and a little deep American (onyx) */ var deepOnly = /santa/.test(String(spec.blend || '')) || (spec.showman && spec.only_lead);
     if (!show && lead.length > 1) { var r = h % lead.length; lead = lead.slice(r).concat(lead.slice(0, r)); }
     var W = show && lead[0] === 'am_santa' && lead.length === 3 ? [0.5, 0.32, 0.18] : show && lead[0] === 'am_santa' && lead.length === 2 ? [0.65, 0.35] : show && lead.length === 1 ? [1] : show ? [0.55, 0.25, 0.20] : [0.55 + ((h >>> 3) % 10) / 100, 0.28, 0.17 - ((h >>> 3) % 10) / 100];
-    if (deepOnly) { lead = ['am_fenrir', 'am_michael', 'am_puck']; W = [0.5, 0.3, 0.2]; } /* Caine: a strong, YOUNGER adult voice (fenrir, deep and gritty) with a clear announcer (michael) and a lively, playful edge (puck) - no santa (it made him sound elderly). Picked by tone and resonance against the reference clip */ /* Caine: the deep lead voice, with 15% of a lively, playful voice (puck) - the blend that scored closest to the reference clip in an automatic search over 8 voices */
+    if (deepOnly) { lead = ['am_onyx', 'am_fenrir', 'bm_george']; W = [0.4, 0.3, 0.3]; } /* Caine: a booming SHOW BARITONE - onyx (deep, resonant), fenrir (grit and energy) and george (theatrical, crisp vintage-announcer diction); measured: about 3x the chest resonance of the earlier blend, no nasal 'nerdy' honk, a big-bodied voice */ /* Caine: a strong, YOUNGER adult voice (fenrir, deep and gritty) with a clear announcer (michael) and a lively, playful edge (puck) - no santa (it made him sound elderly). Picked by tone and resonance against the reference clip */ /* Caine: the deep lead voice, with 15% of a lively, playful voice (puck) - the blend that scored closest to the reference clip in an automatic search over 8 voices */
     var mix = lead.map(function (v, i) { return { voice: v, w: Math.max(0.05, W[i] || 0.1) }; });
     var voice = 'cv_' + String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24) + '_' + hash(JSON.stringify(mix)).toString(36);
     CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0.035 };
@@ -130,7 +130,7 @@
        tract (F3 ~2.75 kHz like the clip) and a forward, brassy announcer tone (lows trimmed, strong 1.8 kHz projection), so it is
        bright and booming instead of dark and boomy; no random personal offset - Caine always sounds exactly like Caine */
     var caineV = !!(spec.showman || spec.timbre === 'showman');
-    if (caineV) CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0, fx: { tract: 1.032, eq: [['lowshelf', 160, -4.7, 0.7], ['peak', 600, 1.4, 1.0], ['peak', 1800, 9.5, 0.8], ['peak', 3000, 1.0, 1.0], ['highshelf', 5000, 4.4, 0.7]] } }; /* searched against the clip's own sentence: open-mouthed vowels (F1 ~480 Hz like the clip), forward 1.8 kHz projection, a little air on top */
+    if (caineV) CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0, fx: { tract: 0.97, eq: [['lowshelf', 180, 4, 0.7], ['peak', 400, -2, 1.2], ['peak', 1150, -3, 1.4], ['peak', 2400, 6, 0.9], ['highshelf', 5500, 2.5, 0.7]] } }; /* booming chest, mud and nasal honk trimmed, brassy 2.4 kHz projection and crisp consonants (exaggerated enunciation); a slightly bigger body (tract 0.97) */ /* searched against the clip's own sentence: open-mouthed vowels (F1 ~480 Hz like the clip), forward 1.8 kHz projection, a little air on top */
     // personal pitch / pace: persona base x the character's own natural-pitch setting x a tiny per-character offset
     var np = typeof spec.np === 'number' ? spec.np : 1, nr = typeof spec.nr === 'number' ? spec.nr : 1;
     var jit = (((h >>> 9) % 7) - 3) * 0.008;
@@ -139,7 +139,7 @@
     k = Math.max(0.84, Math.min(1.18, k));
     k = 1 + (k - 1) * 0.5;
     var showman = !!(spec.showman || spec.timbre === 'showman');
-    if (showman) k = 1.17 + jit * 0.1; /* the new blend speaks low on its own (~118 Hz): this lands his typical pitch near 130 Hz - lower than before (163), not gruff */ /* his own natural pitch (measured to match the reference clip) */ /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
+    if (showman) k = 1.14 + jit * 0.05; /* typical pitch ~118 Hz: a show baritone; the melody still leaps up on accents and yells */ /* the new blend speaks low on its own (~118 Hz): this lands his typical pitch near 130 Hz - lower than before (163), not gruff */ /* his own natural pitch (measured to match the reference clip) */ /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
     var pace = Math.max(0.8, Math.min(1.3, (persona ? persona.s : 1) * (0.5 + 0.5 * nr)));
     if (showman) pace = 1.06; /* exclamations run x1.1 = 1.16, which matched the clip's length for the same sentence */ // fast announcer pacing, as in the reference clip (bursts go faster, deadpan slower)
     var pick = { voice: voice, k: k, pace: pace };
