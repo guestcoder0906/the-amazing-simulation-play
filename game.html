@@ -234,7 +234,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     if (sysNoteShown || !document.body) return; sysNoteShown = true;
     var n = document.createElement('div'); n.setAttribute('role', 'alert');
     n.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:max(12px,env(safe-area-inset-top));z-index:10002;max-width:min(560px,calc(100% - 24px));background:#fff;color:#0f1a24;border-radius:12px;padding:12px 14px;font:13.5px/1.45 "IBM Plex Sans",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;gap:10px;align-items:flex-start';
-    n.innerHTML = '<span style="flex:1"><b>The site's global Claude is used up and not working for now.</b> <span class="w"></span> Smart Caine needs Claude: sign in to your own Claude account to keep playing (your own limits apply).</span><a href="./?signin=1" style="background:#d97757;color:#fff;border-radius:99px;padding:6px 12px;font:600 13px system-ui;text-decoration:none;white-space:nowrap">Sign in to Claude</a><button type="button" aria-label="Dismiss" style="background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:#55636f">&times;</button>';
+    n.innerHTML = '<span style="flex:1"><b>The site&#39;s global Claude is used up and not working for now.</b> <span class="w"></span> Smart Caine needs Claude: sign in to your own Claude account to keep playing (your own limits apply).</span><a href="./?signin=1" style="background:#d97757;color:#fff;border-radius:99px;padding:6px 12px;font:600 13px system-ui;text-decoration:none;white-space:nowrap">Sign in to Claude</a><button type="button" aria-label="Dismiss" style="background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:#55636f">&times;</button>';
     n.querySelector('.w').textContent = why ? '(' + String(why).slice(0, 160) + ')' : '';
     n.querySelector('button').onclick = function () { n.remove(); sysNoteShown = false; };
     document.body.appendChild(n);
@@ -256,7 +256,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
       var msg = 'Claude ' + r.status + ': ' + t.slice(0, 300); try { var j = JSON.parse(t); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) { /* ok */ }
       var noKey = r.status === 401 || r.status === 403 || (!own && (r.status === 503 || r.status === 404 || r.status === 405));
       if (noKey && window.SIM_LOCAL) throw err('not_granted', msg); /* local: the server says what to do (sign in to Claude Code) - no key prompt */
-      if (noKey && window.SIM_SYSTEM) { systemNotice(msg); throw err('not_granted', 'The site's Claude doesn't work right now: ' + msg); }
+      if (noKey && window.SIM_SYSTEM) { systemNotice(msg); throw err("not_granted", "The site’s Claude doesn’t work right now: " + msg); }
       if (noKey) {
         if (!keyPromptShown) { keyPromptShown = true; promptKey(own ? 'Your Claude API key was not accepted (' + r.status + '). Check it or enter another.' : 'This site\'s shared Claude key is not available right now. Enter your own Claude API key to keep going.'); }
         throw err('not_granted', own ? 'Your Claude API key was not accepted. Enter a valid key (the key button, bottom left).' : 'Claude is not connected yet: enter your Claude API key (the key button, bottom left).');
