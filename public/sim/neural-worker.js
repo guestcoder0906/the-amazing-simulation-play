@@ -66776,7 +66776,7 @@ function shape(x2, sr, sh2) {
   const hop = Math.round(sr * 5e-3), f3 = pitchTrack(x2, sr, hop), f0 = median(f3) || 0;
   const sing = Array.isArray(sh2.notes) && sh2.notes.length;
   const tract = Math.max(0.8, Math.min(1.3, +sh2.tract || 1)), trem = Math.max(0, Math.min(1, +sh2.tremble || 0)), robo = Math.max(0, Math.min(1, +sh2.robot || 0));
-  if (!sing && !sh2.expr && !sh2.fry && Math.abs(tract - 1) < 0.01 && !trem && !robo && (!sh2.ratio || Math.abs(sh2.ratio - 1) < 4e-3)) return { pcm: x2, f0 };
+  if (!sing && !sh2.expr && !sh2.fry && !sh2.arc && Math.abs(tract - 1) < 0.01 && !trem && !robo && (!sh2.ratio || Math.abs(sh2.ratio - 1) < 4e-3)) return { pcm: x2, f0 };
   const N3 = x2.length, nF = f3.length;
   const voicedF = (i3) => f3[Math.min(nF - 1, Math.max(0, i3))] > 0;
   const per = (i3) => {
@@ -66890,6 +66890,11 @@ function shape(x2, sr, sh2) {
       if (!sing && robo && f0 > 0) {
         const flat = f0 * (sh2.ratio || 1) / (sr / pa2);
         ratio = Math.pow(ratio || 1, 1 - robo) * Math.pow(flat, robo);
+      }
+      if (!sing && sh2.arc) {
+        const u3 = ts2 / L2, a0 = +sh2.arc.start || 0, a1 = +sh2.arc.end || 0;
+        const st0 = u3 < 0.28 ? a0 * Math.sin(Math.PI * Math.min(1, u3 / 0.28)) : 0, st1 = u3 > 0.72 ? a1 * Math.pow((u3 - 0.72) / 0.28, 1.6) : 0;
+        ratio = (ratio || 1) * Math.pow(2, (st0 + st1) / 12);
       }
       if (!sing && trem) {
         const tt2 = ts2 / sr;
