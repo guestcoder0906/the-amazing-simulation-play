@@ -2441,16 +2441,16 @@ function buildRozy() {
   const eyePatch = { c: HC, r: HR, t0: d(-76), t1: d(76), p0: d(-26), p1: d(56), cw: 384, ch: 224, pad: 6 };
   const whites = new Atlas({ ...eyePatch, key: 'whites', cols: 1, rows: 1, cells: [{ label: 'Whites', draw: (p) => { for (const s of S2) p.fill(ell(s * EYE.cx, EYE.cy, EYE.rx, EYE.ry, 64), '#fffdf0'); } }] });
   whites.drawAll();
-  R.mat('whites', { name: 'Rozy_Eye_Whites', color: '#ffffff', rough: 0.4, map: whites.canvas, alphaTest: 0.5, poly: -1 });
+  R.mat('whites', { name: 'Rozy_Eye_Whites', color: '#ffffff', rough: 0.4, map: whites.canvas, alphaTest: 0.3, poly: -1 });
   R.add('whites', ellGrid(HC, HR, { nu: 44, nv: 26, t0: whites.t0, t1: whites.t1, p0: whites.p0, p1: whites.p1, off: 0.0014, uv: (u, v) => whites.uvMap(u, v) }), W.rigid('Head'));
   const pupCv = mkCanvas(128, 128); { const c = pupCv.getContext('2d'); c.fillStyle = '#0d0b12'; c.beginPath(); c.arc(64, 64, 58, 0, 2 * PI); c.fill(); }
-  R.mat('pupil', { name: 'Rozy_Pupils', color: '#ffffff', rough: 0.3, map: pupCv, alphaTest: 0.5, poly: -2 });
+  R.mat('pupil', { name: 'Rozy_Pupils', color: '#ffffff', rough: 0.3, map: pupCv, alphaTest: 0.3, poly: -2 });
   for (const [sfx, s] of SIDES) {
     const a = (PUP * 1.06) / HR[0];
     R.add('pupil', ellGrid(HC, HR, { nu: 14, nv: 14, t0: s * thc - a / Math.cos(phc), t1: s * thc + a / Math.cos(phc), p0: phc - a, p1: phc + a, off: 0.0025 }), W.rigid('Pupil' + sfx));
   }
   const E = (s) => ({ ...EYE, cx: s * EYE.cx });
-  const both = (spL, spR = spL) => (p) => { drawEye(p, E(1), 1, spL, RPC.lidHole(SKIN), ink); drawEye(p, E(-1), -1, spR, RPC.lidHole(SKIN), ink); };
+  const both = (spL, spR = spL) => (p) => { drawEye(p, E(1), 1, spL, SKIN, ink); drawEye(p, E(-1), -1, spR, SKIN, ink); };
   const lidCells = [
     ['Open', { top: 0 }], ['Relaxed', { top: 0.2 }], ['Half', { top: 0.5 }], ['Sleepy', { top: 0.68, bottom: 0.08 }],
     ['Closed', { mode: 'closed' }], ['Happy ^^', { mode: 'happy' }], ['Worried', { top: 0.22, tilt: 0.9, brow: { inY: 0.013, outY: 0.003, curve: 0.002 } }],
@@ -2461,7 +2461,7 @@ function buildRozy() {
   const lids = new Atlas({ ...eyePatch, key: 'lids', label: 'Eyes', cols: 4, rows: 4, cells: lidCells, def: 0 });
   lids.drawAll();
   lids.guide = (p) => { for (const s of S2) p.fill(ell(s * EYE.cx, EYE.cy, EYE.rx, EYE.ry, 48), 'rgba(255,255,255,.55)'); };
-  R.mat('lids', { name: 'Rozy_Eyelids_Drawn', color: '#ffffff', rough: 0.62, atlas: 'lids', alphaTest: 0.75, poly: -3, lidMask: true, order: 3 });
+  R.mat('lids', { name: 'Rozy_Eyelids_Drawn', color: '#ffffff', rough: 0.62, atlas: 'lids', alphaTest: 0.3, poly: -3 });
   R.add('lids', ellGrid(HC, HR, { nu: 44, nv: 26, t0: lids.t0, t1: lids.t1, p0: lids.p0, p1: lids.p1, off: 0.0037, uv: (u, v) => lids.uvMap(u, v) }), W.rigid('Head'));
   R.layers.push(lids);
 
@@ -2830,7 +2830,7 @@ function buildMeno() {
       face: 'Determined (sheet B)',
     },
     'Chin on rusted pipe': { rot: symPose({ Torso_Lower: [10, 0, 0], Torso_Upper: [14, 0, 0], Head: [8, 0, 8], Tail_1: [0, 60, 0] }), ik: { 'Arm.L': { t: [0.05, 0.4, 0.14] }, 'Arm.R': { t: [-0.035, 0.42, 0.15] } }, face: 'Lazy / exhausted' },
-    'Slumped in burlap sacks': { pos: { Hips: [0, -0.075, 0] }, rot: symPose({ Hips: [16, 0, 0], 'UpperLeg*': [-74, 0, 12], 'LowerLeg*': [12, 0, 0], 'UpperArm*': [0, 0, 22], 'LowerArm*': [-10, 0, 0], Tail_1: [-35, 20, 0], Head: [6, -10, 0] }), face: 'Lazy / exhausted' },
+    'Slumped in burlap sacks': { pos: { Hips: [0, -0.075, 0] }, rot: symPose({ Hips: [16, 0, 0], 'UpperLeg*': [-88, 0, 12], 'LowerLeg*': [4, 0, 0], 'UpperArm*': [0, 0, 22], 'LowerArm*': [-10, 0, 0], Tail_1: [-35, 20, 0], Head: [6, -10, 0] }), face: 'Lazy / exhausted' },
     'Dusting himself off': { rot: symPose({ Torso_Upper: [6, 8, 0], Head: [12, 10, 0], 'Hand.R': [-20, 0, 0], Tail_1: [0, 50, 0] }), ik: { 'Arm.R': { t: [0.02, 0.24, 0.1] } }, face: 'Sigh' },
     // ---- Episode 1 staging
     'Scratching his head': { rot: { ...symPose({ Tail_1: [10, 66, 0], Tail_2: [0, 22, 0], Tail_Fin: [0, 10, 0] }), Torso_Upper: [0, 0, 4], Head: [-4, -8, -12] }, ik: { 'Arm.R': { t: [-0.078, 0.49, 0.05] }, 'Arm.L': { t: [0.07, 0.3, 0.08] } }, face: 'Sigh' },
@@ -2847,7 +2847,7 @@ function buildMeno() {
     'Shading his eyes (searching)': { rot: { ...symPose({ Tail_1: [10, 66, 0], Tail_2: [0, 22, 0] }), Torso_Upper: [-4, 0, 0], Head: [-8, 14, 0] }, ik: { 'Arm.R': { t: [-0.05, 0.5, 0.1] }, 'Arm.L': { t: [0.07, 0.3, 0.08] } }, face: 'Unsettled' },
     'Looking up': { rot: symPose({ 'UpperArm*': [-6, 0, -2], 'LowerArm*': [-8, 0, 0], Neck: [-10, 0, 0], Head: [-26, 0, 0], Tail_1: [10, 66, 0], Tail_2: [0, 22, 0] }), face: 'Neutral (sheet A)' },
     'Poking forward': { rot: { ...symPose({ Tail_1: [10, 60, 0] }), Torso_Lower: [6, 0, 0], Torso_Upper: [10, 0, 0], Neck: [4, 0, 0], Head: [8, 6, 0] }, ik: { 'Arm.R': { t: [-0.035, 0.33, 0.2] }, 'Arm.L': { t: [0.075, 0.29, 0.08] } }, face: 'Lazy / exhausted' },
-    'Slumped, deflating': { pos: { Hips: [0, -0.082, 0] }, scl: { Torso_Lower: [1.05, 0.9, 1.05], Torso_Upper: [0.97, 1.05, 0.97] }, rot: symPose({ Hips: [20, 0, 0], 'UpperLeg*': [-74, 0, 12], 'LowerLeg*': [12, 0, 0], 'UpperArm*': [6, 0, 18], 'LowerArm*': [-6, 0, 0], Tail_1: [-35, 20, 0], Torso_Upper: [10, 0, 0], Neck: [6, 0, 0], Head: [12, -6, 0] }), face: 'Unsettled' },
+    'Slumped, deflating': { pos: { Hips: [0, -0.082, 0] }, scl: { Torso_Lower: [1.05, 0.9, 1.05], Torso_Upper: [0.97, 1.05, 0.97] }, rot: symPose({ Hips: [20, 0, 0], 'UpperLeg*': [-88, 0, 12], 'LowerLeg*': [4, 0, 0], 'UpperArm*': [6, 0, 18], 'LowerArm*': [-6, 0, 0], Tail_1: [-35, 20, 0], Torso_Upper: [10, 0, 0], Neck: [6, 0, 0], Head: [12, -6, 0] }), face: 'Unsettled' },
     'Peeking out of the sacks': { pos: { Hips: [0, -0.075, 0] }, rot: symPose({ Hips: [16, 0, 0], 'UpperLeg*': [-74, 0, 12], 'LowerLeg*': [12, 0, 0], 'UpperArm*': [-20, 0, 14], 'LowerArm*': [-16, 0, 0], Tail_1: [-35, 20, 0], Torso_Lower: [6, 0, 0], Torso_Upper: [10, 0, 0], Neck: [-8, 0, 0], Head: [-14, 0, 0] }), face: 'Skeptical "Ehh"' },
     'Waving from the sacks': { pos: { Hips: [0, -0.075, 0] }, rot: { ...symPose({ Hips: [16, 0, 0], 'UpperLeg*': [-74, 0, 12], 'LowerLeg*': [12, 0, 0], Tail_1: [-35, 20, 0], Torso_Lower: [4, 0, 0], Torso_Upper: [6, 0, 0], Neck: [-8, 0, 0], Head: [-12, 0, 0] }), 'UpperArm.L': [-20, 0, 14], 'LowerArm.L': [-16, 0, 0] }, ik: { 'Arm.R': { t: [-0.1, 0.47, 0.12] } }, face: 'Surprised' },
   };
@@ -3130,16 +3130,19 @@ function buildKlora() {
   const eyePatch = { c: HC, r: HR, t0: d(-82), t1: d(82), p0: d(-30), p1: d(56), cw: 384, ch: 224, pad: 6 };
   const whites = new Atlas({ ...eyePatch, key: 'whites', cols: 1, rows: 1, cells: [{ label: 'Whites', draw: (p) => { for (const s of S2) p.fill(ell(s * EYE.cx, EYE.cy, EYE.rx, EYE.ry, 64), '#ffffff'); } }] });
   whites.drawAll();
-  R.mat('whites', { ...plastic('Klora_Eye_Whites', '#ffffff', whites.canvas), alphaTest: 0.5, poly: -1 });
+  R.mat('whites', { ...plastic('Klora_Eye_Whites', '#ffffff', whites.canvas), alphaTest: 0.5, poly: -1, order: 2 });
   R.add('whites', ellGrid(HC, HR, { nu: 44, nv: 26, t0: whites.t0, t1: whites.t1, p0: whites.p0, p1: whites.p1, off: 0.00045, uv: (u, v) => whites.uvMap(u, v) }), W.rigid('Head'));
   const pupCv = mkCanvas(128, 128); { const c = pupCv.getContext('2d'); c.fillStyle = '#0c0c0c'; c.beginPath(); c.arc(64, 64, 58, 0, 2 * PI); c.fill(); c.fillStyle = '#ffffff'; c.beginPath(); c.arc(46, 44, 14, 0, 2 * PI); c.fill(); }
-  R.mat('pupil', { ...plastic('Klora_Pupils', '#ffffff', pupCv), alphaTest: 0.5, poly: -2 });
+  R.mat('pupil', { ...plastic('Klora_Pupils', '#ffffff', pupCv), alphaTest: 0.5, poly: -2, order: 2 });
   for (const [sfx, s] of SIDES) {
     const a = (PUP * 1.06) / HR[0];
     R.add('pupil', ellGrid(HC, HR, { nu: 14, nv: 14, t0: s * thc - a / Math.cos(phc), t1: s * thc + a / Math.cos(phc), p0: phc - a * EK, p1: phc + a * EK, off: 0.0009 }), W.rigid('Pupil' + sfx));
   }
   const E = (s) => ({ ...EYE, cx: s * EYE.cx });
-  const both = (spL, spR = spL) => (p) => { drawEye(p, E(1), 1, spL, RPC.lidHole(WHITE), ink); drawEye(p, E(-1), -1, spR, RPC.lidHole(WHITE), ink); };
+  // v174: where a lid covers her eye the drawing is half-transparent (alpha 0.6): that marks a hole cut through the whites and pupils (a depth-only
+  // mask mesh, app.js `lidMask`, the same as Meno's), so her own plastic shows there with its real shading, not a flat white painted patch
+  const LIDHOLE = (() => { const h = parseInt(WHITE.slice(1), 16); return 'rgba(' + (h >> 16 & 255) + ',' + (h >> 8 & 255) + ',' + (h & 255) + ',0.6)'; })();
+  const both = (spL, spR = spL) => (p) => { drawEye(p, E(1), 1, spL, LIDHOLE, ink); drawEye(p, E(-1), -1, spR, LIDHOLE, ink); };
   const lidCells = [
     ['Open (sheet)', { top: 0 }], ['Proud (lidded)', { top: 0.3 }], ['Half', { top: 0.5 }], ['Sleepy', { top: 0.68, bottom: 0.08 }],
     ['Closed', { mode: 'closed' }], ['Happy ^^', { mode: 'happy' }], ['Worried', { top: 0.2, tilt: 0.9, brow: { inY: 0.012, outY: 0.003, curve: 0.002 } }],
