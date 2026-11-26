@@ -234,7 +234,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     if (sysNoteShown || !document.body) return; sysNoteShown = true;
     var n = document.createElement('div'); n.setAttribute('role', 'alert');
     n.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:max(12px,env(safe-area-inset-top));z-index:10002;max-width:min(560px,calc(100% - 24px));background:#fff;color:#0f1a24;border-radius:12px;padding:12px 14px;font:13.5px/1.45 "IBM Plex Sans",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;gap:10px;align-items:flex-start';
-    n.innerHTML = '<span style="flex:1"><b>The site\'s Claude doesn\'t work right now.</b> <span class="w"></span> You can still play with no limits from the site by signing in to your own Claude account.</span><a href="./?signin=1" style="background:#d97757;color:#fff;border-radius:99px;padding:6px 12px;font:600 13px system-ui;text-decoration:none;white-space:nowrap">Sign in to Claude</a><button type="button" aria-label="Dismiss" style="background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:#55636f">&times;</button>';
+    n.innerHTML = '<span style="flex:1"><b>The site's global Claude is used up and not working for now.</b> <span class="w"></span> Smart Caine needs Claude: sign in to your own Claude account to keep playing (your own limits apply).</span><a href="./?signin=1" style="background:#d97757;color:#fff;border-radius:99px;padding:6px 12px;font:600 13px system-ui;text-decoration:none;white-space:nowrap">Sign in to Claude</a><button type="button" aria-label="Dismiss" style="background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:#55636f">&times;</button>';
     n.querySelector('.w').textContent = why ? '(' + String(why).slice(0, 160) + ')' : '';
     n.querySelector('button').onclick = function () { n.remove(); sysNoteShown = false; };
     document.body.appendChild(n);
@@ -422,7 +422,8 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
       } catch (e) {
         if (e && (e.name === 'AbortError' || e.code === 'cancelled')) throw e;
         if (e && e.code === 'model_unavailable') DOWN[s.g || s.c] = true;
-        if (e && /credit balance is too low/i.test(String(e.message || ''))) { e.code = 'no_credit'; DOWN[OPUS] = DOWN[HAIKU] = true; } /* Claude is out of credit: skip it for the rest of this visit */
+        if (e && /credit balance is too low/i.test(String(e.message || ''))) { e.code = 'no_credit'; DOWN[OPUS] = DOWN[HAIKU] = true; }
+        if (window.SIM_SYSTEM && s.c && e && e.code !== 'cancelled') systemNotice(e.message); /* the site's Claude failed (used up, key missing or not accepted): say so */ /* Claude is out of credit: skip it for the rest of this visit */
         if (!(last && last.code === 'no_credit')) last = e; /* the reason that matters is kept for the message */ console.info('[ai] ' + (s.g || s.c || 'local AI') + ' failed (' + (e && e.message) + ') - trying the next model');
       }
     }
