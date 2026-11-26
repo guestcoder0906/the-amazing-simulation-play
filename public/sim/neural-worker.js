@@ -67375,7 +67375,7 @@ function speakMelody(x2, sr, text, pr) {
   const segOf = new Int32Array(nF);
   for (let k4 = 0; k4 < Kf2; k4++) for (let i3 = bF[k4]; i3 < bF[k4 + 1]; i3++) segOf[i3] = k4;
   for (let i3 = bF[Kf2]; i3 < nF; i3++) segOf[i3] = Kf2 - 1;
-  const center = med * (+pr.ratio || 1), glide = Math.max(1, Math.round(0.045 * sr / hop));
+  const center = med * (+pr.ratio || 1), glide = Math.max(1, Math.round((+pr.glide || 0.045) * sr / hop));
   const tFrame = (i3) => {
     i3 = Math.min(nF - 1, Math.max(0, i3));
     const k4 = segOf[i3], a2 = bF[k4], b3 = bF[k4 + 1], u3 = Math.min(1, (i3 - a2) / Math.max(1, b3 - a2));
@@ -67386,6 +67386,7 @@ function speakMelody(x2, sr, text, pr) {
       const pv = tgt[k4 - 1] + ramp[k4 - 1], e2 = (i3 - a2) / glide;
       v3 = pv + (v3 - pv) * e2 * e2 * (3 - 2 * e2);
     }
+    if (pr.vib && isAcc[k4] && (b3 - a2) * hop / sr > 0.16 && u3 > 0.25) v3 += pr.vib * Math.min(1, (u3 - 0.25) / 0.3) * Math.sin(2 * Math.PI * 5.3 * (i3 * hop / sr));
     const r2 = semi[i3];
     if (r2 === r2) v3 += keep * (r2 - mean[k4]);
     return Math.min(v3, acc1 + 4);
