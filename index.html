@@ -40,7 +40,19 @@
     <h2 id="h-start">Play with your Claude account</h2>
     <p>Optionally log in with Claude so Caine's AI works (your limits still apply). If not, then it uses the system's Claude (global limits apply, doesn't work sometimes).</p>
     <a class="btn primary" id="play" href="#">Play with Claude</a>
+    <button class="btn" id="local" type="button">Play on your own computer</button>
     <button class="btn ghost" id="decline" type="button">I don't want to sign in to Claude</button>
+  </section>
+
+  <section class="card" id="localCard" aria-labelledby="h-local" hidden>
+    <h2 id="h-local">Play on your own computer</h2>
+    <p>The game runs on your computer and talks to Claude through Anthropic's own Claude Code, signed in with <strong>your</strong> Claude account, so your own plan and limits apply. Nothing about your login goes to this website.</p>
+    <p>1. Install <a href="https://www.python.org/downloads/" target="_blank" rel="noopener" style="color:var(--marigold)">Python 3</a> if you don't have it.<br>
+       2. Download the game and unzip it.<br>
+       3. Open the folder and run <strong>play-local.bat</strong> (Windows) or <strong>play-local.sh</strong> (Mac / Linux).<br>
+       4. The first time, it offers to install Claude Code and opens Anthropic's sign-in page. After that the game opens in your browser.</p>
+    <a class="btn primary" href="https://github.com/guestcoder0906/the-amazing-simulation/archive/refs/heads/main.zip">Download the game (.zip)</a>
+    <button class="btn" id="backLocal" type="button">Back</button>
   </section>
 
   <section class="card" id="confirm" aria-labelledby="h-confirm" hidden>
@@ -55,12 +67,14 @@
   // the published Claude artifact (shared as "Anyone with the link"). Its /embed view only works inside claude.ai (opened
   // directly it goes to this page), so the game opens here; its full-screen button shows only the game.
   var ARTIFACT_URL = 'https://claude.ai/artifact/4jySABZ5DbznhGAc2EZ9Ls';
-  var start = document.getElementById('start'), confirmBox = document.getElementById('confirm');
+  var start = document.getElementById('start'), confirmBox = document.getElementById('confirm'), localCard = document.getElementById('localCard');
   document.getElementById('play').href = ARTIFACT_URL;
-  function show(el) { start.hidden = el !== start; confirmBox.hidden = el !== confirmBox; var f = el.querySelector('a,button'); if (f) f.focus(); }
+  function show(el) { start.hidden = el !== start; confirmBox.hidden = el !== confirmBox; localCard.hidden = el !== localCard; var f = el.querySelector('a,button'); if (f) f.focus(); }
   document.getElementById('decline').onclick = function () { show(confirmBox); };
+  document.getElementById('local').onclick = function () { show(localCard); };
   document.getElementById('back').onclick = function () { show(start); };
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !confirmBox.hidden) show(start); });
+  document.getElementById('backLocal').onclick = function () { show(start); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && (!confirmBox.hidden || !localCard.hidden)) show(start); });
 })();
 </script>
 </body>
