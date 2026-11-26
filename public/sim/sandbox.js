@@ -4458,9 +4458,9 @@ function chkApply1(info, t, dt) { { if (!info.root.visible && info.root !== ALT.
       ey = clamp(FPV_LOOK.eyeLeadYaw, -0.4, 0.4); ep = clamp(FPV_LOOK.eyeLeadPitch, -0.28, 0.28);
       info.eyeYaw = ey; info.eyePitch = ep;
     } else {
-      const T = chkGaze(info, dt); let yaw = 0, pitch = 0;
-      if (T) { const ref = hd || info.root; ref.updateWorldMatrix(true, false); const hp = ref.getWorldPosition(new THREE.Vector3()), hq = chkFrameQ(info); const d = T.clone().sub(hp).applyQuaternion(hq.invert()); yaw = Math.atan2(d.x, d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
-      if (Math.abs(yaw) > 2.2) { yaw = 0; pitch = 0; } info.yawS = (info.yawS || 0) + (yaw - (info.yawS || 0)) * (1 - Math.exp(-dt * 6)); info.pitS = (info.pitS || 0) + (pitch - (info.pitS || 0)) * (1 - Math.exp(-dt * 6));
+      const T = chkGaze(info, dt); let yaw = 0, pitch = 0, aimWs = 1;
+      if (T) { const ref = hd || info.root; ref.updateWorldMatrix(true, false); const hp = ref.getWorldPosition(new THREE.Vector3()), hq = chkFrameQ(info); const d = T.clone().sub(hp).applyQuaternion(hq.invert()); const dh = Math.hypot(d.x, d.z), dl = d.length() || 1; yaw = Math.atan2(d.x, d.z); pitch = Math.atan2(d.y, dh); /* target almost straight above or below (camera overhead): the direction's sideways part is tiny and its angle flips every frame, so the aim eases to neutral there instead of shaking */ const aimW = Math.min(1, Math.max(0, (dh / dl - 0.12) / 0.23)); aimWs = aimW * aimW * (3 - 2 * aimW); yaw *= aimWs; pitch *= aimWs; }
+      if (aimWs > 0.5 && Math.abs(yaw) > 2.2) { yaw = 0; pitch = 0; } info.yawS = (info.yawS || 0) + (yaw - (info.yawS || 0)) * (1 - Math.exp(-dt * 6)); info.pitS = (info.pitS || 0) + (pitch - (info.pitS || 0)) * (1 - Math.exp(-dt * 6));
       ey = info.yawS; ep = info.pitS; if (hd && !info.isOllo) { const hy = clamp(info.yawS * 0.65, -1.0, 1.0), hpch = clamp(info.pitS * 0.5, -0.4, 0.4); info.headQ0.copy(hd.quaternion); info.headSaved = true; { const FQ = chkFrameQ(info), Rw = FQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-hpch, hy, 0, 'YXZ'))).multiply(FQ.clone().invert()); chkSetW(hd, hd.getWorldPosition(new THREE.Vector3()), Rw.multiply(hd.getWorldQuaternion(new THREE.Quaternion()))); } ey -= hy; ep -= hpch; }
       info.look.lerp(info.lookT, 1 - Math.exp(-dt * 22)); ey = clamp(ey + info.look.x, -0.45, 0.45); ep = clamp(ep + info.look.y, -0.3, 0.3); info.eyeYaw = ey; info.eyePitch = ep;
     }
