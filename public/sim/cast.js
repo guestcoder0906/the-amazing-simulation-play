@@ -9491,17 +9491,24 @@ function castMain() {
        angle at a capped speed with an eased approach, instead of snapping there in one frame. Face bones (talking, blinking)
        follow at once. syncToBones(true) places every joint exactly (measurements, resets). */
     syncToBones(instant) {
-      const now = performance.now(), last = this._syncT || 0; this._syncT = now;
-      const dt = last ? (now - last) / 1000 : 0, snap = instant === true || !last || dt > 0.5 || globalThis.__simSmoothJoints === false; /* the pose editor places joints exactly */
-      const shown = this._shownQ || (this._shownQ = []), tq = syncToBonesQ || (syncToBonesQ = [new THREE.Quaternion(), new THREE.Quaternion()]);
-      const ease = 1 - Math.exp(-dt * 12), maxStep = dt * 7; /* ~7 rad/s at most: a 90° swing takes about a quarter second */
-      this.st.L.forEach((l, i) => { const b = this.bones[i]; b.position.fromArray(l.p); b.scale.fromArray(l.s);
+      this.applyLocal(this.st.L, { instant: instant === true, key: 'sync' });
+      for (const L of this.ch.layers) this.applyCell(L.key, this.st.atlas[L.key]);
+    }
+    /* writes a local pose onto the bones with the same smooth follow (used by syncToBones AND by the per-frame motion / AI control
+       path, which used to write straight onto the bones: limbs snapped to every new target the AI or the controls set). While
+       walking / running the follow is quicker (steps stay crisp, feet do not slide); body poses still never jump in one frame */
+    applyLocal(L, o) {
+      o = o || {}; const key = o.key || 'sync', T = this._smT || (this._smT = {}), S = this._smQ || (this._smQ = {});
+      const now = performance.now(), last = T[key] || 0; T[key] = now;
+      const dt = last ? (now - last) / 1000 : 0, snap = o.instant || !last || dt > 0.5 || globalThis.__simSmoothJoints === false; /* the pose editor places joints exactly */
+      const shown = S[key] || (S[key] = []), tq = syncToBonesQ || (syncToBonesQ = [new THREE.Quaternion(), new THREE.Quaternion()]);
+      const fast = !!o.fast, ease = 1 - Math.exp(-dt * (fast ? 22 : 12)), maxStep = dt * (fast ? 16 : 7); /* ~7 rad/s at most for poses (a 90° swing takes about a quarter second); quicker while walking */
+      L.forEach((l, i) => { const b = this.bones[i]; if (!b) return; b.position.fromArray(l.p); b.scale.fromArray(l.s);
         const def = this.ch.bones[i], face = def && def.region === 'Face';
         if (snap || face || !shown[i]) { b.quaternion.fromArray(l.q); shown[i] = b.quaternion.toArray(); return; }
         const cur = tq[0].fromArray(shown[i]), want = tq[1].fromArray(l.q); const ang = cur.angleTo(want);
         if (ang > 1e-4) { const step = Math.min(ang, Math.max(ang * ease, Math.min(ang, 0.002)), maxStep); cur.rotateTowards(want, step); }
         b.quaternion.copy(cur); shown[i] = cur.toArray(); });
-      for (const L of this.ch.layers) this.applyCell(L.key, this.st.atlas[L.key]);
     }
     syncFromBone(i) { const b = this.bones[i]; this.st.L[i] = { p: b.position.toArray(), q: b.quaternion.toArray(), s: b.scale.toArray() }; }
     syncAllFromBones() { this.bones.forEach((_, i) => this.syncFromBone(i)); }
@@ -10334,7 +10341,7 @@ function castMain() {
     if (!c.walk && !c.want && window.__rpFootLift && castState.dragging !== g && c.mo.grounded) g.position.y += window.__rpFootLift(c); /* standing still: no sole in the ground under it */
     { const still = c.mo.idle !== false && !c.walk && !(out.gait && out.gait.active) && (!LI || LI.state === 'ground'); c._idleW = Math.min(1, Math.max(0, (c._idleW || 0) + (still ? dt * 1.2 : -dt * 4))); // idle life fades in once it stands still
       if (c._idleW > 0.001 && !(castState.dragging)) RPC.idleLife(c.ch, out.L, performance.now() / 1000, c._idleW, c.id); }
-    out.L.forEach((l, i) => { const b = c.bones[i]; b.position.fromArray(l.p); b.quaternion.fromArray(l.q); b.scale.fromArray(l.s); });
+    c.applyLocal(out.L, { key: 'motion', fast: !!(out.gait && out.gait.active) || !!c.walk, instant: !!castState.dragging }); /* smooth follow (was a straight write: limbs snapped) */
     c.out = out;
     // this character's solid body, as seen by the others (world space)
     const caps = c._solidCaps || (c._solidCaps = RPC.buildCapsules(c.ch).filter((k) => !/Ears|Antennae|Wings/.test(k.region)));
