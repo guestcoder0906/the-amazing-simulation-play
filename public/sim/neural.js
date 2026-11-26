@@ -43,7 +43,7 @@
         if (m.type === 'progress') { progress[m.file] = { loaded: m.loaded, total: m.total }; emit(); }
         else if (m.type === 'ready') { /* the speed test runs while the page is still busy loading (world, Caine's model), so a slow result is NOT a reason to give up the natural voice for the whole visit: only a device that is hopelessly slow (over 4x real time) falls back */ if (m.rtf && m.rtf > 4) { state = 'failed'; lastErr = 'device too slow for natural voices (x' + m.rtf.toFixed(2) + ' real time)'; console.info('[neural voice] ' + lastErr + '; using fallback voices'); try { worker.terminate(); } catch (e) { /* ok */ } } else { if (m.rtf > 1.3) console.info('[neural voice] slow start (x' + m.rtf.toFixed(2) + ' real time, the page was busy): keeping the natural voices'); state = 'ready'; } emit(); }
         else if (m.type === 'log') { console.info('[neural voice]', m.text); }
-        else if (m.type === 'audio') { var p = pending.get(m.id); if (p) { pending.delete(m.id); var secs = m.pcm.length / (m.sr || 24000), took = (performance.now() - Math.max(p.t, busyUntil)) / 1000; slow = secs > 0.4 && took > secs * 2.2 ? slow + 1 : Math.max(0, slow - 1); if (slow >= 3) { slow = 0; console.info('[neural voice] a few lines were slow (the page was busy): keeping the natural voices'); } /* never switched off for the visit because of a busy moment */ p.res({ pcm: m.pcm, sr: m.sr, f0: m.f0 || 0, starts: m.starts || null, failed: !!m.failed }); } busyUntil = performance.now(); }
+        else if (m.type === 'audio') { var p = pending.get(m.id); if (p) { pending.delete(m.id); var secs = m.pcm.length / (m.sr || 24000), took = (performance.now() - Math.max(p.t, busyUntil)) / 1000; slow = secs > 0.4 && took > secs * 2.2 ? slow + 1 : Math.max(0, slow - 1); if (slow >= 3) { slow = 0; console.info('[neural voice] a few lines were slow (the page was busy): keeping the natural voices'); } /* never switched off for the visit because of a busy moment */ p.res({ pcm: m.pcm, sr: m.sr, f0: m.f0 || 0, outF0: m.outF0 || 0, starts: m.starts || null, failed: !!m.failed }); } busyUntil = performance.now(); }
         else if (m.type === 'error') {
           if (m.id === -1) { state = 'failed'; lastErr = m.text; console.warn('[neural voice] could not load, using fallback voices:', m.text); emit(); pending.forEach(function (p) { p.rej(new Error(m.text)); }); pending.clear(); }
           else { var q = pending.get(m.id); if (q) { pending.delete(m.id); q.rej(new Error(m.text)); } }
@@ -66,11 +66,11 @@
     var cv = CUSTOM_VOICES[voice], mum = !!(cv && cv.mode === 'mumble');
     /* ACCURACY: the blended voice's own pitch is measured on its first line; from then on every line is tuned so the voice really
        speaks at the pitch its design asked for (target_pitch_hz), whatever the blend happened to come out as */
-    if (cv && cv.targetHz && cv.baseF0 && shape && !shape.phrase && !Array.isArray(shape.notes)) { var cal = Math.max(0.6, Math.min(1.8, cv.targetHz / cv.baseF0)); shape = Object.assign({}, shape, { ratio: (shape.ratio || 1) / (cv.k || 1) * cal }); }
+    if (cv && cv.targetHz && cv.baseF0 && shape && !shape.phrase && !Array.isArray(shape.notes)) { var cal = Math.max(0.5, Math.min(2.2, cv.targetHz / cv.baseF0)) * (cv.corr || 1); shape = Object.assign({}, shape, { ratio: Math.max(0.45, Math.min(2.3, (shape.ratio || 1) / (cv.k || 1) * cal)) }); }
     if (!worker || (state !== 'ready' && !(mum && state === 'loading'))) return Promise.reject(new Error('neural voice not ready'));
     var id = nextId++;
     return new Promise(function (res, rej) {
-      var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) cv.baseF0 = r.f0; } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
+      var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) cv.baseF0 = r.f0; else if (cv && cv.targetHz && cv.baseF0 && !cv.calibrating && r && r.outF0 > 40) cv.corr = Math.max(0.6, Math.min(1.7, (cv.corr || 1) * Math.pow(cv.targetHz / r.outF0, 0.6))); /* closed loop: each spoken line's real pitch nudges the next ones onto the design */ } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
       worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: mum ? null : (shape || null), device: device,
         mix: cv ? cv.mix || null : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0, fx: cv ? cv.fx || null : null, lang: cv ? cv.lang || null : null, mode: mum ? 'mumble' : null, mumble: mum ? cv.mumble : null });
       setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000);
@@ -178,7 +178,7 @@
     var pitch = num(d.pitch, 0.7, 1.45, 1), pace = num(d.pace, 0.75, 1.35, 1);
     /* CLARITY BUDGET: stacked effects blur words, so when the design piles them up they are scaled down together until the
        words stay clear (a muffled, raspy, metallic, echoing voice keeps its character at a lower total strength) */
-    var load = fx.muffle * 1.0 + fx.rasp * 0.9 + fx.robot * 0.9 + fx.echo * 0.7 + fx.breath * 0.5 + fx.nasal * 0.4 + fx.tremble * 0.4;
+    var load = (+d.effort || 0) * 0.5 + fx.muffle * 1.0 + fx.rasp * 0.9 + fx.robot * 0.9 + fx.echo * 0.7 + fx.breath * 0.5 + fx.nasal * 0.4 + fx.tremble * 0.4;
     if (load > 1.1) { var sc = 1.1 / load; ['muffle', 'rasp', 'robot', 'echo', 'breath', 'nasal', 'tremble'].forEach(function (k) { fx[k] *= sc; }); }
     if (mode === 'mumble') {
       var mpk = { voice: 'mumble_' + h.toString(36), k: 1, pace: pace, mode: 'mumble' };
@@ -189,8 +189,14 @@
     CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a', targetHz: d.target_pitch_hz != null ? num(d.target_pitch_hz, 70, 420, 0) : 0, k: pitch };
     /* the character's own way of speaking: melody 0 = the model's natural reading, up to 1 = a wildly animated, sing-song delivery
        (accents leap, small words drop, lines end the way their punctuation says) */
-    var mel = num(d.melody, 0, 1, 0), melody = mel >= 0.1 ? { acc1: 3 + 10 * mel, acc2: 2 + 8 * mel, decay: 0.6, low: 1.5 + 3 * mel, endRise: 3 + 7 * mel, keep: 0.6 - 0.25 * mel, decl: 1.2 } : null;
-    return { voice: voice, k: pitch, pace: pace, mode: 'words', melody: melody };
+    /* how it SPEAKS, from the design: melody (how sing-song) and energy (how hard it pushes). Every designed voice gets the same
+       expressive engine as Caine - rewritten syllable melody, smooth note-to-note slides, vibrato on held vowels, drawn-out stressed
+       vowels, volume punches, a brighter tone on high notes, calmer line endings - scaled to the character */
+    var mel = num(d.melody, 0, 1, 0.3), en = num(d.energy, 0, 1, 0.4);
+    var melody = mel >= 0.08 ? { acc1: 3 + 12 * mel, acc2: 2 + 9 * mel, decay: 0.7, low: 1.5 + 2.5 * mel, endRise: 1 + 3 * mel, keep: 0.6 - 0.25 * mel, decl: 1.2, dyn: 3 + 9 * en, vary: 1, stretch: 1 + 0.35 * mel, squeeze: 1 - 0.15 * mel, finalYell: 0.3 * en, endDrop: 2 + 4 * mel, heat: 0.4 * en, glide: 0.05 + 0.07 * mel, vib: 0.4 * mel } : null;
+    fx.effort = num(d.effort, 0, 1, 0.35 * en);
+    var dead = { acc1: 2 + 2 * mel, acc2: 1.5 + 1.5 * mel, decay: 0.9, low: 1, endRise: 0, keep: 0.5, decl: 1.5, dyn: 2, vary: 0.5, stretch: 1.1, squeeze: 0.97, glide: 0.08, endDrop: 1.5 };
+    return { voice: voice, k: pitch, pace: pace, mode: 'words', melody: melody, deadMelody: dead, deadLift: 1.03, style: { expr: 1.1, eq: 'designed' } };
   }
 
   // a rough fundamental-frequency estimate of a voiced clip (autocorrelation over the loudest frames)
@@ -209,6 +215,9 @@
   }
   window.NeuralVoice = {
     supported: supported, start: start, gen: gen, match: match, f0: f0,
+    /* ACCURACY BEFORE THE FIRST LINE: a designed voice is rendered once silently (a short neutral phrase) so its real pitch is measured
+       and every line - including the first - lands on the pitch its design asked for */
+    calibrate: function (spec, key) { try { var pk = match(spec, key, ''); var cv = CUSTOM_VOICES[pk.voice]; if (!cv || !cv.targetHz || cv.baseF0 || cv.calibrating || cv.mode === 'mumble') return Promise.resolve(false); cv.calibrating = true; return gen('Hello there, how are you doing today?', pk.voice, 1, { ratio: 1 }).then(function () { cv.calibrating = false; return !!cv.baseF0; }, function () { cv.calibrating = false; return false; }); } catch (e) { return Promise.resolve(false); } },
     status: status, ready: function () { return state === 'ready'; },
     onStatus: function (f) { listeners.push(f); try { f(status()); } catch (e) { /* ok */ } }
   };

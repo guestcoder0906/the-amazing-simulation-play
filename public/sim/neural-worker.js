@@ -67460,7 +67460,13 @@ function speakMelody(x2, sr, text, pr) {
     y3[i3] *= a2;
     y3[Lo - 1 - i3] *= a2;
   }
-  return { pcm: y3, f0: med };
+  let outF0 = 0;
+  try {
+    const yf2 = pitchTrack(y3, sr, hop * 2);
+    outF0 = median(yf2) || 0;
+  } catch (e2) {
+  }
+  return { pcm: y3, f0: med, outF0 };
 }
 var VOICE_BASE = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/";
 var CUSTOM = /* @__PURE__ */ new Map();
@@ -67756,7 +67762,7 @@ self.onmessage = (ev2) => {
         let pcm = out.audio instanceof Float32Array ? out.audio : new Float32Array(out.audio);
         const sr = out.sampling_rate || 24e3;
         let f0 = 0;
-        let starts = null, failed = false;
+        let starts = null, failed = false, outF0 = 0;
         if (msg.shape && msg.shape.phrase) {
           const r2 = singPhrase(pcm, sr, msg.shape);
           if (r2) {
@@ -67769,6 +67775,7 @@ self.onmessage = (ev2) => {
           if (r2) {
             pcm = r2.pcm;
             f0 = r2.f0;
+            outF0 = r2.outF0 || 0;
           } else {
             const r22 = shape(pcm, sr, msg.shape);
             pcm = r22.pcm;
@@ -67780,7 +67787,8 @@ self.onmessage = (ev2) => {
           f0 = r2.f0;
         }
         if (msg.fx) pcm = voiceFx(pcm, sr, msg.fx, msg.seed);
-        postMessage({ type: "audio", id: msg.id, pcm, sr, f0, starts, failed }, [pcm.buffer]);
+        if (!outF0 && f0 && msg.shape && msg.shape.ratio && !msg.shape.melody && !msg.shape.phrase && !Array.isArray(msg.shape.notes)) outF0 = f0 * msg.shape.ratio;
+        postMessage({ type: "audio", id: msg.id, pcm, sr, f0, outF0, starts, failed }, [pcm.buffer]);
       } catch (e2) {
         postMessage({ type: "error", id: msg.id, text: String(e2 && (e2.stack || e2.message) || e2).slice(0, 600) });
       }
