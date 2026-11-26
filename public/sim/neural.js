@@ -122,6 +122,12 @@
     var mix = lead.map(function (v, i) { return { voice: v, w: Math.max(0.05, W[i] || 0.1) }; });
     var voice = 'cv_' + String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24) + '_' + hash(JSON.stringify(mix)).toString(36);
     CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0.035 };
+    /* CAINE'S SIGNATURE VOICE, measured against the reference recording (tadc-caine-3) and tuned until they match: the deep lead
+       voice at its own pitch (median ~165 Hz like the clip, not dragged down), wide but natural swings, a slightly shorter vocal
+       tract (F3 ~2.75 kHz like the clip) and a forward, brassy announcer tone (lows trimmed, strong 1.8 kHz projection), so it is
+       bright and booming instead of dark and boomy; no random personal offset - Caine always sounds exactly like Caine */
+    var caineV = !!(spec.showman || spec.timbre === 'showman');
+    if (caineV) CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0, fx: { tract: 1.08, eq: [['lowshelf', 160, -3.5, 0.7], ['peak', 600, 2, 1.0], ['peak', 1800, 8, 0.8], ['peak', 3000, 3, 1.0]] } };
     // personal pitch / pace: persona base x the character's own natural-pitch setting x a tiny per-character offset
     var np = typeof spec.np === 'number' ? spec.np : 1, nr = typeof spec.nr === 'number' ? spec.nr : 1;
     var jit = (((h >>> 9) % 7) - 3) * 0.008;
@@ -130,11 +136,11 @@
     k = Math.max(0.84, Math.min(1.18, k));
     k = 1 + (k - 1) * 0.5;
     var showman = !!(spec.showman || spec.timbre === 'showman');
-    if (showman) k = 0.85 + jit * 0.3; /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
+    if (showman) k = 0.98 + jit * 0.2; /* his own natural pitch (measured to match the reference clip) */ /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
     var pace = Math.max(0.8, Math.min(1.3, (persona ? persona.s : 1) * (0.5 + 0.5 * nr)));
-    if (showman) pace = Math.max(pace, 1.38); // manic, rapid-fire ringmaster pacing
+    if (showman) pace = 1.3; // fast announcer pacing, as in the reference clip (bursts go faster, deadpan slower)
     var pick = { voice: voice, k: k, pace: pace };
-    if (showman) pick.style = { expr: 3.8, eq: 'brassy' }; /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
+    if (showman) pick.style = { expr: 1.9, eq: 'caine' }; /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
     used.set(key, { spec: spec, pick: pick });
     return pick;
   }
