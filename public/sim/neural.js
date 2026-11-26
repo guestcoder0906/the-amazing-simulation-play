@@ -130,7 +130,7 @@
        tract (F3 ~2.75 kHz like the clip) and a forward, brassy announcer tone (lows trimmed, strong 1.8 kHz projection), so it is
        bright and booming instead of dark and boomy; no random personal offset - Caine always sounds exactly like Caine */
     var caineV = !!(spec.showman || spec.timbre === 'showman');
-    if (caineV) CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0, fx: { tract: 0.97, eq: [['lowshelf', 180, 4, 0.7], ['peak', 400, -2, 1.2], ['peak', 1150, -3, 1.4], ['peak', 2400, 6, 0.9], ['highshelf', 5500, 2.5, 0.7]] } }; /* booming chest, mud and nasal honk trimmed, brassy 2.4 kHz projection and crisp consonants (exaggerated enunciation); a slightly bigger body (tract 0.97) */ /* searched against the clip's own sentence: open-mouthed vowels (F1 ~480 Hz like the clip), forward 1.8 kHz projection, a little air on top */
+    if (caineV) CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: 0, fx: { tract: 0.95, eq: [['lowshelf', 180, 4, 0.7], ['peak', 400, -2, 1.2], ['peak', 1150, -3, 1.4], ['peak', 2400, 6, 0.9], ['highshelf', 5500, 2.5, 0.7]] } }; /* booming chest, mud and nasal honk trimmed, brassy 2.4 kHz projection and crisp consonants (exaggerated enunciation); a slightly bigger body (tract 0.97) */ /* searched against the clip's own sentence: open-mouthed vowels (F1 ~480 Hz like the clip), forward 1.8 kHz projection, a little air on top */
     // personal pitch / pace: persona base x the character's own natural-pitch setting x a tiny per-character offset
     var np = typeof spec.np === 'number' ? spec.np : 1, nr = typeof spec.nr === 'number' ? spec.nr : 1;
     var jit = (((h >>> 9) % 7) - 3) * 0.008;
@@ -139,7 +139,7 @@
     k = Math.max(0.84, Math.min(1.18, k));
     k = 1 + (k - 1) * 0.5;
     var showman = !!(spec.showman || spec.timbre === 'showman');
-    if (showman) k = 1.14 + jit * 0.05; /* typical pitch ~118 Hz: a show baritone; the melody still leaps up on accents and yells */ /* the new blend speaks low on its own (~118 Hz): this lands his typical pitch near 130 Hz - lower than before (163), not gruff */ /* his own natural pitch (measured to match the reference clip) */ /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
+    if (showman) k = 1.04 + jit * 0.05; /* deeper: typical pitch ~105-110 Hz (a low show baritone); the wide melody still leaps high on accents */ /* typical pitch ~118 Hz: a show baritone; the melody still leaps up on accents and yells */ /* the new blend speaks low on its own (~118 Hz): this lands his typical pitch near 130 Hz - lower than before (163), not gruff */ /* his own natural pitch (measured to match the reference clip) */ /* a touch higher: deep, but not sunk */ // mid baritone-tenor, kept low: depth comes from the blend, not from dragging the pitch down
     var pace = Math.max(0.8, Math.min(1.3, (persona ? persona.s : 1) * (0.5 + 0.5 * nr)));
     if (showman) pace = 1.06; /* exclamations run x1.1 = 1.16, which matched the clip's length for the same sentence */ // fast announcer pacing, as in the reference clip (bursts go faster, deadpan slower)
     var pick = { voice: voice, k: k, pace: pace };
@@ -147,7 +147,7 @@
     /* Caine's melody, REWRITTEN per syllable (not just bent): fitted by an automatic search against his reference recording
        (melody error 3.8 semitones for the model's own reading -> 2.0): the first accented word leaps ~13 semitones, later
        accents fade, small words sit low, and "!" lines swoop up at the end */
-    if (showman) pick.melody = { acc1: 10, acc2: 8, decay: 0.45, low: 2.5, endRise: 8, keep: 0.35, decl: 1.1 }; /* same announcer shape, smaller leaps so the peaks never go squeaky-high */ /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
+    if (showman) pick.melody = { acc1: 14, acc2: 11, decay: 0.62, low: 4, endRise: 11, keep: 0.5, decl: 1.4, dyn: 10 }; /* exaggerated showman melody: big leaps on every key word (later ones barely fade), small words drop low, big end swoops, and the volume punches with the accents */ /* same announcer shape, smaller leaps so the peaks never go squeaky-high */ /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
     used.set(key, { spec: spec, pick: pick });
     return pick;
   }
