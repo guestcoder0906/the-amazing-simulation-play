@@ -496,7 +496,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     }
     var voiced = f0.filter(function (v) { return v > 0; }), loud = rms.filter(function (v) { return v > 0.01; });
     var med = function (a) { if (!a.length) return 0; var b = a.slice().sort(function (p, q) { return p - q; }); return b[b.length >> 1]; };
-    var semis = voiced.map(function (v) { return 12 * Math.log2(v / (med(voiced) || 1)); }), mean = semis.reduce(function (a, b) { return a + b; }, 0) / (semis.length || 1);
+    var vMed = med(voiced) || 1, semis = voiced.map(function (v) { return 12 * Math.log2(v / vMed); }), mean = semis.reduce(function (a, b) { return a + b; }, 0) / (semis.length || 1);
     var pitchVar = Math.sqrt(semis.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / (semis.length || 1));
     var jit = 0, jn = 0; for (var j = 1; j < f0.length; j++) if (f0[j] > 0 && f0[j - 1] > 0) { jit += Math.abs(Math.log2(f0[j] / f0[j - 1])); jn++; } jit = jn ? jit / jn * 1200 : 0; // cents between frames
     var tail = voiced.slice(-Math.max(3, Math.floor(voiced.length * 0.15))), head = voiced.slice(0, Math.max(3, Math.floor(voiced.length * 0.6)));
@@ -512,6 +512,19 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     var bestLag = 0, bestR = 0; for (var L = 25; L <= 100; L++) { var r2 = 0; for (var c = 0; c + L < on.length; c++) r2 += on[c] * on[c + L]; if (r2 > bestR) { bestR = r2; bestLag = L; } }
     return { f0: med(voiced), pitchVar: pitchVar, jitter: jit, rise: rise, syllPerSec: active > 0.3 ? peaks / active : 0, pauses: pauses, db: db, peakDb: peakDb,
              voicedShare: voiced.length / (loud.length || 1), periodicity: periodic, brightness: bright, dur: dur, tempo: bestLag ? Math.round(60 / (bestLag * hop / sr)) : 0 };
+  }
+  /* the voice measurements are heavy (pitch search over every 10 ms of sound): they run in a background worker so the game
+     never freezes while a long phrase is measured; without workers they run here as before */
+  var ACW = { w: null, n: 0, pend: new Map(), failed: false };
+  function acousticsAsync(x, sr) {
+    if (!ACW.failed && !ACW.w) {
+      try { var u = URL.createObjectURL(new Blob(['var acoustics=' + acoustics.toString() + ';onmessage=function(e){var d=e.data;try{postMessage({id:d.id,A:acoustics(d.x,d.sr)});}catch(er){postMessage({id:d.id,err:String(er)});}};'], { type: 'text/javascript' }));
+        ACW.w = new Worker(u); ACW.w.onmessage = function (e) { var p = ACW.pend.get(e.data.id); if (!p) return; ACW.pend.delete(e.data.id); e.data.A ? p.res(e.data.A) : p.res(acoustics(p.x, p.sr)); };
+        ACW.w.onerror = function () { ACW.failed = true; ACW.w = null; ACW.pend.forEach(function (p) { p.res(acoustics(p.x, p.sr)); }); ACW.pend.clear(); };
+      } catch (e) { ACW.failed = true; ACW.w = null; }
+    }
+    if (!ACW.w) return Promise.resolve(acoustics(x, sr));
+    return new Promise(function (res) { var id = ACW.n++; ACW.pend.set(id, { res: res, x: x, sr: sr }); ACW.w.postMessage({ id: id, x: x, sr: sr }); });
   }
   function interpret(A, words, tags) {
     var top = function (re) { return tags.filter(function (t) { return re.test(t.label) && t.score > 0.08; }); };
@@ -546,7 +559,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
   }
   async function localHear(blob, context) {
     var pcm = await toPcm16k(blob);
-    var A = acoustics(pcm, 16000);
+    var A = await acousticsAsync(pcm, 16000);
     var w = await listenWorker(), id = LISTEN.n++;
     var out = await new Promise(function (res, rej) { LISTEN.pend.set(id, { res: res, rej: rej }); w.postMessage({ type: 'listen', id: id, pcm: pcm, speech: A.voicedShare > 0.1 || A.syllPerSec > 0.5, device: navigator.gpu ? 'webgpu' : 'wasm' }, [pcm.buffer]); setTimeout(function () { if (LISTEN.pend.has(id)) { LISTEN.pend.delete(id); rej(new Error('listening timed out')); } }, 60000); });
     var res = interpret(A, out.text, out.tags || []);
@@ -580,7 +593,12 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
   }
   /* what YAMNet hears in a piece of audio: the strongest classes over all its ~1 s windows; heard = anything but silence */
   async function yamDetect(pcm, sr) {
-    var c = await yamnet(); var res = c.classify(pcm, sr) || [], best = {};
+    var c = await yamnet();
+    /* YAMNet works at 16 kHz: shrinking the game's 44.1/48 kHz sound first makes each check about 3x lighter, and the check
+       waits for a free moment so it never lands in the middle of a frame */
+    if (sr > 16000) { var f = sr / 16000, m = Math.floor(pcm.length / f), d = new Float32Array(m); for (var di = 0; di < m; di++) { var a0 = Math.floor(di * f), a1 = Math.min(pcm.length, Math.floor((di + 1) * f)), s0 = 0; for (var dk = a0; dk < a1; dk++) s0 += pcm[dk]; d[di] = s0 / Math.max(1, a1 - a0); } pcm = d; sr = 16000; }
+    await new Promise(function (r) { (window.requestIdleCallback || function (fn) { setTimeout(fn, 0); })(function () { r(); }, { timeout: 500 }); });
+    var res = c.classify(pcm, sr) || [], best = {};
     res.forEach(function (r) { ((r.classifications && r.classifications[0] && r.classifications[0].categories) || []).forEach(function (k) { var n = k.categoryName || k.displayName; if (n && (!(n in best) || best[n] < k.score)) best[n] = k.score; }); });
     var cats = Object.keys(best).map(function (n) { return { label: n, score: +best[n].toFixed(3) }; }).sort(function (a, b) { return b.score - a.score; });
     var real = cats.filter(function (k) { return k.label !== 'Silence' && k.score >= 0.2; });
@@ -622,7 +640,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
       try { kind = await audioKind(w64, yamHint); } catch (e) { if (e && e.name === 'AbortError') throw e; kind = null; }
       if (kind === 'none') return null;
       if (kind === 'speech') {
-        try { var words = await transcribeAudio(w64); if (!String(words || '').trim()) return null; var sp = interpret(acoustics(await toPcm16k(wav), 16000), words, []); sp.heard_by = 'Gemini 3.5 Transcribe'; return sp; }
+        try { var words = await transcribeAudio(w64); if (!String(words || '').trim()) return null; var sp = interpret(await acousticsAsync(await toPcm16k(wav), 16000), words, []); sp.heard_by = 'Gemini 3.5 Transcribe'; return sp; }
         catch (e) { console.info('[listen] Transcribe unavailable (' + (e && e.message) + '): Flash-Lite listens instead'); }
       }
       var wordsP = kind === 'both' ? transcribeAudio(w64).catch(function () { return null; }) : Promise.resolve(null);
