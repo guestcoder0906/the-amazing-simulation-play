@@ -64,10 +64,13 @@
   function gen(text, voice, speed, shape) {
     text = String(text == null ? '' : text).replace(/[*_~`#|<>\[\]{}^]+/g, ' ').replace(/\s{2,}/g, ' ').trim(); // never read symbols like * aloud
     var cv = CUSTOM_VOICES[voice], mum = !!(cv && cv.mode === 'mumble');
+    /* ACCURACY: the blended voice's own pitch is measured on its first line; from then on every line is tuned so the voice really
+       speaks at the pitch its design asked for (target_pitch_hz), whatever the blend happened to come out as */
+    if (cv && cv.targetHz && cv.baseF0 && shape && !shape.phrase && !Array.isArray(shape.notes)) { var cal = Math.max(0.6, Math.min(1.8, cv.targetHz / cv.baseF0)); shape = Object.assign({}, shape, { ratio: (shape.ratio || 1) / (cv.k || 1) * cal }); }
     if (!worker || (state !== 'ready' && !(mum && state === 'loading'))) return Promise.reject(new Error('neural voice not ready'));
     var id = nextId++;
     return new Promise(function (res, rej) {
-      var now = performance.now(); if (!pending.size) busyUntil = now; pending.set(id, { res: res, rej: rej, t: now });
+      var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) cv.baseF0 = r.f0; } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
       worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: mum ? null : (shape || null), device: device,
         mix: cv ? cv.mix || null : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0, fx: cv ? cv.fx || null : null, lang: cv ? cv.lang || null : null, mode: mum ? 'mumble' : null, mumble: mum ? cv.mumble : null });
       setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000);
@@ -140,7 +143,11 @@
     var pace = Math.max(0.8, Math.min(1.3, (persona ? persona.s : 1) * (0.5 + 0.5 * nr)));
     if (showman) pace = 1.06; /* exclamations run x1.1 = 1.16, which matched the clip's length for the same sentence */ // fast announcer pacing, as in the reference clip (bursts go faster, deadpan slower)
     var pick = { voice: voice, k: k, pace: pace };
-    if (showman) pick.style = { expr: 1.4, eq: 'caine' }; /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
+    if (showman) pick.style = { expr: 1.4, eq: 'caine' };
+    /* Caine's melody, REWRITTEN per syllable (not just bent): fitted by an automatic search against his reference recording
+       (melody error 3.8 semitones for the model's own reading -> 2.0): the first accented word leaps ~13 semitones, later
+       accents fade, small words sit low, and "!" lines swoop up at the end */
+    if (showman) pick.melody = { acc1: 13, acc2: 11, decay: 0.43, low: 4.6, endRise: 10, keep: 0.35, decl: 1.1 }; /* lively swings like the clip; the tone curve is applied in the voice worker */ /* wide, lively pitch swings (not monotone) */ // wide pitch swings, forward/brassy resonance with chest boom
     used.set(key, { spec: spec, pick: pick });
     return pick;
   }
@@ -166,14 +173,21 @@
     var bw = 0, tw = 0; mix.forEach(function (b) { tw += b.w; if (/^b/.test(b.voice)) bw += b.w; });
     var fx = { tract: num(d.tract, 0.82, 1.25, 1), tremble: num(d.tremble, 0, 1, 0), robot: num(d.robot, 0, 1, 0), breath: num(d.breath, 0, 1, 0), rasp: num(d.rasp, 0, 1, 0), nasal: num(d.nasal, 0, 1, 0), muffle: num(d.muffle, 0, 1, 0), bright: num(d.bright, -1, 1, 0), echo: num(d.echo, 0, 1, 0) };
     var pitch = num(d.pitch, 0.7, 1.45, 1), pace = num(d.pace, 0.75, 1.35, 1);
+    /* CLARITY BUDGET: stacked effects blur words, so when the design piles them up they are scaled down together until the
+       words stay clear (a muffled, raspy, metallic, echoing voice keeps its character at a lower total strength) */
+    var load = fx.muffle * 1.0 + fx.rasp * 0.9 + fx.robot * 0.9 + fx.echo * 0.7 + fx.breath * 0.5 + fx.nasal * 0.4 + fx.tremble * 0.4;
+    if (load > 1.1) { var sc = 1.1 / load; ['muffle', 'rasp', 'robot', 'echo', 'breath', 'nasal', 'tremble'].forEach(function (k) { fx[k] *= sc; }); }
     if (mode === 'mumble') {
       var mpk = { voice: 'mumble_' + h.toString(36), k: 1, pace: pace, mode: 'mumble' };
       CUSTOM_VOICES[mpk.voice] = { mode: 'mumble', seed: h, fx: fx, mumble: { f0: num(d.mumble_pitch_hz, 60, 700, 170 * pitch), tract: num(d.tract, 0.6, 1.8, 1), breath: num(d.breath, 0, 1, 0.12), tremble: fx.tremble } };
       return mpk;
     }
     var voice = 'cv_' + String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24) + '_d' + h.toString(36);
-    CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a' };
-    return { voice: voice, k: pitch, pace: pace, mode: 'words' };
+    CUSTOM_VOICES[voice] = { mix: mix, seed: h, vary: num(d.uniqueness, 0, 1, 0.5) * 0.07, fx: fx, lang: tw && bw / tw > 0.5 ? 'b' : 'a', targetHz: d.target_pitch_hz != null ? num(d.target_pitch_hz, 70, 420, 0) : 0, k: pitch };
+    /* the character's own way of speaking: melody 0 = the model's natural reading, up to 1 = a wildly animated, sing-song delivery
+       (accents leap, small words drop, lines end the way their punctuation says) */
+    var mel = num(d.melody, 0, 1, 0), melody = mel >= 0.1 ? { acc1: 3 + 10 * mel, acc2: 2 + 8 * mel, decay: 0.6, low: 1.5 + 3 * mel, endRise: 3 + 7 * mel, keep: 0.6 - 0.25 * mel, decl: 1.2 } : null;
+    return { voice: voice, k: pitch, pace: pace, mode: 'words', melody: melody };
   }
 
   // a rough fundamental-frequency estimate of a voiced clip (autocorrelation over the loudest frames)
