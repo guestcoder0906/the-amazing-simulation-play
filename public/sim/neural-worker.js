@@ -67596,7 +67596,7 @@ function voiceFx(x2, sr, fx, seed) {
     let pk1 = 0;
     for (let i3 = 0; i3 < y3.length; i3++) pk1 = Math.max(pk1, Math.abs(y3[i3]));
     const drv = 1 + 1.5 * eff, n0 = pk1 || 1;
-    for (let i3 = 0; i3 < y3.length; i3++) y3[i3] = Math.tanh(y3[i3] / n0 * drv) / Math.tanh(drv) * n0;
+    if (fx.drive) for (let i3 = 0; i3 < y3.length; i3++) y3[i3] = Math.tanh(y3[i3] / n0 * drv) / Math.tanh(drv) * n0;
   }
   if (ra2) {
     let lfo = 0, tgt = 0;
