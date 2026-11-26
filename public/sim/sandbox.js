@@ -477,10 +477,10 @@ function deformTest(c, opt = {}) {
   const keep = { st: c.st, p: c.group.position.clone(), r: c.group.rotation.clone(), s: c.group.scale.clone() }; c.group.position.set(0, 0, 0); c.group.rotation.set(0, 0, 0); c.group.scale.set(1, 1, 1);
   const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(); const pos = (v, out) => { out.fromBufferAttribute(P, v); body.applyBoneTransform(v, out); return out; };
   const results = []; const perBone = new Map();
-  for (const T of stressTests(c)) { const st = RPC.newState(ch); st.L[T.bone].q = T.q.toArray(); c.st = st; c.syncToBones(); c.group.updateMatrixWorld(true); body.skeleton.update();
+  for (const T of stressTests(c)) { const st = RPC.newState(ch); st.L[T.bone].q = T.q.toArray(); c.st = st; c.syncToBones(true); c.group.updateMatrixWorld(true); body.skeleton.update();
     let bad = 0, n = 0; const culprits = new Map(); E.forEach(([a, b], i) => { if (rest[i] < med * 0.3) return; n++; const r = pos(a, v1).distanceTo(pos(b, v2)) / rest[i]; if (r > 2.0 || r < 0.35) { bad++; for (let k = 0; k < 4; k++) { const bi = body.geometry.attributes.skinIndex.getComponent(a, k), w = body.geometry.attributes.skinWeight.getComponent(a, k); if (w > 0.15) culprits.set(bi, (culprits.get(bi) || 0) + 1); } } });
     const pct = n ? bad / n * 100 : 0; results.push({ test: T.name, bone: T.bone, pct }); perBone.set(T.bone, Math.max(perBone.get(T.bone) || 0, pct)); T.culprits = culprits; }
-  c.st = keep.st; c.syncToBones(); c.group.position.copy(keep.p); c.group.rotation.copy(keep.r); c.group.scale.copy(keep.s); c.group.updateMatrixWorld(true);
+  c.st = keep.st; c.syncToBones(true); c.group.position.copy(keep.p); c.group.rotation.copy(keep.r); c.group.scale.copy(keep.s); c.group.updateMatrixWorld(true);
   const lim = opt.limit ?? 1.0; const failing = results.filter((r) => r.pct > lim).sort((a, b) => b.pct - a.pct);
   const mean = results.length ? results.reduce((a, r) => a + r.pct, 0) / results.length : 0;
   return { tests: results.length, mean: +mean.toFixed(3), worst: failing[0] ? { test: failing[0].test, pct: +failing[0].pct.toFixed(2) } : null, ok: !failing.length, failing: failing.slice(0, 8).map((r) => ({ test: r.test, badSkinPct: +r.pct.toFixed(2) })), perBone };
@@ -1210,7 +1210,7 @@ addEventListener('keydown', (ev) => { if (ev.target.tagName === 'INPUT' || ev.ta
 function focusObj(o) { const b = worldBox(o); const c = b.getCenter(new THREE.Vector3()); const r = Math.max(0.4, b.getSize(new THREE.Vector3()).length() / 2); const dir = camera.position.clone().sub(controls.target).normalize(); controls.target.copy(c); camera.position.copy(c).addScaledVector(dir, r * 2.6); controls.update(); }
 SBX.focusObj = focusObj;
 // animator editor (off by default): the cast posing panel + the studio keyframe timeline, aimed at the sandbox
-btnAnim.onclick = () => { const on = btnAnim.getAttribute('aria-pressed') !== 'true'; btnAnim.setAttribute('aria-pressed', String(on)); setLegacyUI(on, ['cast', 'castLabels', 'studio', 'studioPip']); OH.manual = on; SBX.legacyPick = on; if (on) unselect(); else { try { CAST.tc.detach(); } catch (e) { /* ok */ } } const hint = root.querySelector('.sbx-hint'); if (hint) hint.hidden = on; if (on) { try { CAST.select(ollo); } catch (e) { /* ok */ } toast('Animator on: pick a character and a body part, pose it, key it on the timeline'); } };
+btnAnim.onclick = () => { const on = btnAnim.getAttribute('aria-pressed') !== 'true'; btnAnim.setAttribute('aria-pressed', String(on)); setLegacyUI(on, ['cast', 'castLabels', 'studio', 'studioPip']); OH.manual = on; SBX.legacyPick = on; globalThis.__simSmoothJoints = !on; if (on) unselect(); else { try { CAST.tc.detach(); } catch (e) { /* ok */ } } const hint = root.querySelector('.sbx-hint'); if (hint) hint.hidden = on; if (on) { try { CAST.select(ollo); } catch (e) { /* ok */ } toast('Animator on: pick a character and a body part, pose it, key it on the timeline'); } };
 // follow camera
 let follow = false; btnFollow.onclick = () => { follow = !follow; btnFollow.setAttribute('aria-pressed', String(follow)); };
 // picture-in-picture: Ollo's eyes

@@ -3,6 +3,7 @@ import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { Reflector } from "three/addons/objects/Reflector.js";
 // ===================== RADIANT PARK CAST · CORE (math, geometry, rig builder) =====================
 const RPC = { DETAIL: 1.6 }; // mesh density multiplier: every surface is subdivided this much finer
+let syncToBonesQ = null; // scratch quaternions for the smooth joint follow in syncToBones
 (() => {
 const PI = Math.PI, D2R = PI / 180;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -9486,8 +9487,20 @@ function castMain() {
       idx = Math.max(0, Math.min(L.cols * L.rows - 1, idx | 0)); this.st.atlas[key] = idx;
       t.offset.set((idx % L.cols) / L.cols, Math.floor(idx / L.cols) / L.rows);
     }
-    syncToBones() {
-      this.st.L.forEach((l, i) => { const b = this.bones[i]; b.position.fromArray(l.p); b.quaternion.fromArray(l.q); b.scale.fromArray(l.s); });
+    /* body joints never jump: when a pose changes (the AI sets a pose, a clip starts or ends), each joint turns toward its new
+       angle at a capped speed with an eased approach, instead of snapping there in one frame. Face bones (talking, blinking)
+       follow at once. syncToBones(true) places every joint exactly (measurements, resets). */
+    syncToBones(instant) {
+      const now = performance.now(), last = this._syncT || 0; this._syncT = now;
+      const dt = last ? (now - last) / 1000 : 0, snap = instant === true || !last || dt > 0.5 || globalThis.__simSmoothJoints === false; /* the pose editor places joints exactly */
+      const shown = this._shownQ || (this._shownQ = []), tq = syncToBonesQ || (syncToBonesQ = [new THREE.Quaternion(), new THREE.Quaternion()]);
+      const ease = 1 - Math.exp(-dt * 12), maxStep = dt * 7; /* ~7 rad/s at most: a 90° swing takes about a quarter second */
+      this.st.L.forEach((l, i) => { const b = this.bones[i]; b.position.fromArray(l.p); b.scale.fromArray(l.s);
+        const def = this.ch.bones[i], face = def && def.region === 'Face';
+        if (snap || face || !shown[i]) { b.quaternion.fromArray(l.q); shown[i] = b.quaternion.toArray(); return; }
+        const cur = tq[0].fromArray(shown[i]), want = tq[1].fromArray(l.q); const ang = cur.angleTo(want);
+        if (ang > 1e-4) { const step = Math.min(ang, Math.max(ang * ease, Math.min(ang, 0.002)), maxStep); cur.rotateTowards(want, step); }
+        b.quaternion.copy(cur); shown[i] = cur.toArray(); });
       for (const L of this.ch.layers) this.applyCell(L.key, this.st.atlas[L.key]);
     }
     syncFromBone(i) { const b = this.bones[i]; this.st.L[i] = { p: b.position.toArray(), q: b.quaternion.toArray(), s: b.scale.toArray() }; }
@@ -9570,7 +9583,7 @@ function castMain() {
       if (s.pos) this.group.position.fromArray(s.pos); if (s.yaw !== undefined) this.group.rotation.set(0, s.yaw, 0);
       this.group.visible = s.visible !== false;
       if (s.mo) Object.assign(this.mo, s.mo); this.lookT = s.lookT || null; this.walk = null; this.baseY = null; this.offset = 0; this.motion.reset(); this.loco.reset(null); this.want = null;
-      this.syncToBones(); this.group.updateMatrixWorld(true); this.updateHandles(true);
+      this.syncToBones(true); this.group.updateMatrixWorld(true); this.updateHandles(true);
       return true;
     }
     centerWorld(out = new THREE.Vector3()) { const b = this.bones[this.ch.bi[this.ch.labelBone || 'Torso_Upper']]; return b.getWorldPosition(out); }
