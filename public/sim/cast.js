@@ -4081,7 +4081,7 @@ RPC.Gait = class {
     if (Math.hypot(raw[0], raw[2]) > 40 * LL) { this.reset(); this.prev = G.p.slice(); raw = [0, 0, 0]; }
     this.prev = G.p.slice();
     if (!Number.isFinite(this.vel[0] + this.vel[2])) this.vel = [0, 0, 0]; // never carry a bad number from one walk into the next
-    this.vel = lerp(this.vel, raw, 1 - Math.exp(-dt / 0.12));
+    this.vel = lerp(this.vel, raw, 1 - Math.exp(-dt / (0.12 * Math.sqrt(Math.max(0.15, Math.min(1, LL / 0.16)))))); /* as quick as its steps */
     const speed = Math.hypot(this.vel[0], this.vel[2]);
     const stride = opt.stride || 1;
     const walkMax = 0.85 * LL * this.f0 * stride;
@@ -4436,18 +4436,18 @@ RPC.dragPart = (ch, st, ik, name, t, opt = {}) => {
 // ---------- locomotion: walk / step up / jump up / climb / fall, with ballistic physics ----------
 RPC.Loco = class {
   constructor(ch, gait) {
-    this.ch = ch; this.gait = gait; this.LL = gait.legLen; this.g = 9.81;
+    this.ch = ch; this.gait = gait; this.LL = gait.legLen; this.g = 9.81; const Sz = this.Sz = Math.max(0.15, Math.min(1, this.LL / 0.16)); /* 1 at the usual toy size and above; smaller characters scale every fixed margin down */
     const st = RPC.newState(ch), W = RPC.fk(ch, st), caps = RPC.buildCapsules(ch);
     let top = 0, fwd = 0, back = 0;
     for (const c of caps) { if (/Ears|Antennae|Wings|Tail|Crest/.test(c.region)) continue; for (const e of RPC.capWorld(W, c)) { top = Math.max(top, e[1] + c.r); fwd = Math.max(fwd, e[2] + c.r); back = Math.max(back, -e[2] + c.r); } }
-    this.H = top; this.front = fwd + 0.008;
-    { let br = 0.04; for (const c of caps) { if (/Ears|Antennae|Wings|Tail|Arms|Legs|Crest/.test(c.region)) continue; for (const e of RPC.capWorld(W, c)) br = Math.max(br, Math.hypot(e[0], e[2]) + c.r); } this.bodyR = br * 0.88; }
-    this.legR = Math.max(0.01, ...caps.filter((c) => c.region === 'Legs').map((c) => c.r));
+    this.H = top; this.front = fwd + 0.008 * Sz;
+    { let br = 0.04 * Sz; for (const c of caps) { if (/Ears|Antennae|Wings|Tail|Arms|Legs|Crest/.test(c.region)) continue; for (const e of RPC.capWorld(W, c)) br = Math.max(br, Math.hypot(e[0], e[2]) + c.r); } this.bodyR = br * 0.88; }
+    this.legR = Math.max(0.01 * Sz, ...caps.filter((c) => c.region === 'Legs').map((c) => c.r));
     this.stepMax = 0.42 * this.LL; this.jumpMax = Math.max(this.stepMax * 1.6, 0.72 * top); this.climbMax = 4;
-    this.climbV = Math.max(0.12, 1.1 * this.LL);
+    this.climbV = Math.max(0.12 * Sz, 1.1 * this.LL);
     this.arms = ch.ik.filter((c) => c.kind !== 'leg'); this.legs = ch.ik.filter((c) => c.kind === 'leg');
     this.lat = Object.fromEntries(ch.ik.map((c) => [c.name, ch.bones[ch.bi[c.upper]].pos[0]]));
-    this.endR = Object.fromEntries(ch.ik.map((k) => { const ie = ch.bi[k.end]; let r = 0.008; for (const c of caps) if (c.bone === ie || RPC.isAncestor(ch, ie, c.bone)) r = Math.max(r, c.r); return [k.name, r]; }));
+    this.endR = Object.fromEntries(ch.ik.map((k) => { const ie = ch.bi[k.end]; let r = 0.008 * Sz; for (const c of caps) if (c.bone === ie || RPC.isAncestor(ch, ie, c.bone)) r = Math.max(r, c.r); return [k.name, r]; }));
     this.reset(null);
   }
   reset(p) { this.p = p ? p.slice() : null; this.state = 'ground'; this.t = 0; this.v = [0, 0, 0]; this.plan = null; this.prevP = null; this.limbs = {}; this.landSquash = 0; }
@@ -4473,14 +4473,14 @@ RPC.Loco = class {
   }
   /* THE WHOLE BODY STAYS OUT OF WALLS: its own measured body radius, probed all around at foot, middle and upper height, so the sides and
      the upper body never pass through a wall, a railing or the edge of an opening (also when walking sideways or backwards) */
-  _bodyWalls(P, env, moving) { if (!env.probe || !(this.bodyR > 0)) return; this._bwN = (this._bwN || 0) + 1; if (!moving && this._bwN % 6) return; const R = Math.max(this.bodyR, 0.04);
-    for (const hgt of [this.stepMax + 0.012, Math.max(this.stepMax + 0.02, 0.5 * this.H), Math.max(this.stepMax + 0.03, 0.85 * this.H)]) for (const d of [[1, 0], [-1, 0], [0, 1], [0, -1], [0.707, 0.707], [-0.707, 0.707], [0.707, -0.707], [-0.707, -0.707]]) {
+  _bodyWalls(P, env, moving) { if (!env.probe || !(this.bodyR > 0)) return; this._bwN = (this._bwN || 0) + 1; if (!moving && this._bwN % 6) return; const Sz = this.Sz || 1, R = Math.max(this.bodyR, 0.04 * Sz);
+    for (const hgt of [this.stepMax + 0.012 * Sz, Math.max(this.stepMax + 0.02 * Sz, 0.5 * this.H), Math.max(this.stepMax + 0.03 * Sz, 0.85 * this.H)]) for (const d of [[1, 0], [-1, 0], [0, 1], [0, -1], [0.707, 0.707], [-0.707, 0.707], [0.707, -0.707], [-0.707, -0.707]]) {
       const hit = env.probe([P[0], P[1] + hgt, P[2]], d, R); if (!hit || Math.abs(hit.n[1]) > 0.6) continue; const nh = norm([hit.n[0], 0, hit.n[2]]); const dd = (P[0] - hit.p[0]) * nh[0] + (P[2] - hit.p[2]) * nh[2]; if (dd < R) { const push = Math.min(R - dd, R) * 0.85; P[0] += nh[0] * push; P[2] += nh[2] * push; } } }
   // a falling body can't pass through walls: it stops against them and slides down
   _airWalls(P, prev, env) {
     if (!env.probe) return; const hv = Math.hypot(P[0] - prev[0], P[2] - prev[2]); if (hv < 1e-6) return;
     const dir = [(P[0] - prev[0]) / hv, (P[2] - prev[2]) / hv], ext = Math.max(this.bodyR, 0.6 * this.front);
-    for (const hgt of [this.stepMax + 0.012, 0.5 * this.H, 0.9 * this.H]) {
+    for (const hgt of [this.stepMax + 0.012 * (this.Sz || 1), 0.5 * this.H, 0.9 * this.H]) {
       const hit = env.probe([prev[0], P[1] + hgt, prev[2]], dir, hv + ext); if (!hit || Math.abs(hit.n[1]) > 0.6) continue;
       const nh = norm([hit.n[0], 0, hit.n[2]]); const vn = this.v[0] * nh[0] + this.v[2] * nh[2];
       if (vn < 0) { this.v[0] -= 1.15 * vn * nh[0]; this.v[2] -= 1.15 * vn * nh[2]; }
@@ -4497,7 +4497,7 @@ RPC.Loco = class {
       if (this.state === 'land') { const k = 1 - 0.7 * (1 - smooth(this.t / this.plan.dur)); mx *= k; mz *= k; }
       if (md > 1e-6 && env.probe) {
         const dir = [mx / md, mz / md];
-        const hit = env.probe([P[0], P[1] + this.stepMax + 0.012, P[2]], dir, md + this.front);
+        const hit = env.probe([P[0], P[1] + this.stepMax + 0.012 * (this.Sz || 1), P[2]], dir, md + this.front);
         if (hit && hit.n[1] < 0.6) {
           const nh = norm([hit.n[0], 0, hit.n[2]]); const into = -(dir[0] * nh[0] + dir[1] * nh[2]);
           const top = env.top(hit.p[0] + dir[0] * 0.04, hit.p[2] + dir[1] * 0.04, P[1] + this.stepMax * 0.6, P[1] + this.climbMax);
@@ -10175,7 +10175,7 @@ function castMain() {
   // then the path is pulled straight wherever a straight line is clear.
   const navCache = new Map(), navEdges = new Map();
   const matOf = (h) => (Array.isArray(h.object.material) ? h.object.material[h.face?.materialIndex || 0] : h.object.material);
-  function navParams(c) { const L = c.loco; const r = Math.max(0.045, L.bodyR); return { cs: Math.min(0.3, Math.max(0.18, r * 2)), r, H: L.H, step: L.stepMax, jump: L.jumpMax, drop: Math.max(1.0, L.LL * 5), tag: c.id }; }
+  function navParams(c) { const L = c.loco, Sz = L.Sz || 1; const r = Math.max(0.045 * Sz, L.bodyR); return { cs: Math.min(0.3, Math.max(Math.max(0.06, 0.18 * Sz), r * 2)), r, H: L.H, step: L.stepMax, jump: L.jumpMax, drop: Math.max(1.0, L.LL * 5), tag: c.id }; }
   function navHit(o, dir, far, ms) { rc.set(o, dir); rc.near = 0; rc.far = far; for (const h of rc.intersectObjects(ms, false)) { const m = matOf(h); if (m && SKIP.test(m.name || '')) continue; return h.distance; } return null; }
   // a grid cell: the floor under it (first surface below where the character could hop to) and whether something low (a crate,
   // a bench, a kerb too tall to step) fills the body's space there. Walls are found by the edge rays between cells.
@@ -10287,31 +10287,31 @@ function castMain() {
   }
   function stepWalk(c, dt) {
     const W = c.walk; if (!W) return; const g = c.group;
-    const gait = c.motion.gait, LL = gait.legLen; const vmax = c.mo.speed * 0.85 * LL * gait.f0;
+    const gait = c.motion.gait, LL = gait.legLen; const vmax = c.mo.speed * 0.85 * LL * gait.f0; const Sz = (c.loco && c.loco.Sz) || 1;
     if (!W.pts.length) { W.v = Math.max(0, W.v - vmax * 3 * dt); if (W.v <= 0) { c.walk = null; if (navLine.userData.c === c) navLine.visible = false; commit(); } }
     let want = g.rotation.y, dist = 0;
     const air = c.loco.state === 'jump' || c.loco.state === 'climb', hd0 = [Math.sin(g.rotation.y), Math.cos(g.rotation.y)];
     for (let guard = 0; W.pts.length && guard < 3; guard++) { // reach waypoints; never turn round to tread back onto one it has just walked past
       const dx = W.pts[0][0] - g.position.x, dz = W.pts[0][1] - g.position.z; dist = Math.hypot(dx, dz);
       const mid = W.pts.length > 1, behind = dist > 1e-4 && (dx * hd0[0] + dz * hd0[1]) / dist < -0.2;
-      if (!air && (dist < 0.02 + LL * 0.12 || (behind && dist < (mid ? 0.2 + LL * 0.5 : 0.1)))) { W.pts.shift(); continue; }
+      if (!air && (dist < 0.02 * Sz + LL * 0.12 || (behind && dist < (mid ? 0.2 * Sz + LL * 0.5 : 0.1 * Sz)))) { W.pts.shift(); continue; }
       break;
     }
     if (W.pts.length) {
       let tx = W.pts[0][0], tz = W.pts[0][1];
       if (W.pts.length > 1 && !air) { // follow-through on corners: start easing toward the next leg just before a turn, so the path arcs
-        const rcn = 0.12 + LL * 0.45; if (dist < rcn) { const u = (1 - dist / rcn) * 0.35; tx += (W.pts[1][0] - tx) * u; tz += (W.pts[1][1] - tz) * u; }
+        const rcn = 0.12 * Sz + LL * 0.45; if (dist < rcn) { const u = (1 - dist / rcn) * 0.35; tx += (W.pts[1][0] - tx) * u; tz += (W.pts[1][1] - tz) * u; }
       }
       want = Math.atan2(tx - g.position.x, tz - g.position.z);
     }
     const mvYaw = want, keep = W.keepYaw != null && W.pts.length > 0; if (keep) want = W.keepYaw; /* walking backwards / sideways: the body keeps facing its way, the steps go toward the goal */
     const dy = RPC.angDiff(want, g.rotation.y); g.rotation.y += Math.sign(dy) * Math.min(Math.abs(dy), 4.2 * dt);
     const facing = keep ? 0.6 : Math.max(0, Math.cos(dy));
-    const target = W.pts.length ? Math.min(vmax * facing, W.pts.length > 1 ? vmax : Math.sqrt(2 * 2 * vmax * Math.max(0, dist - 0.02))) : 0;
+    const target = W.pts.length ? Math.min(vmax * facing, W.pts.length > 1 ? vmax : Math.sqrt(2 * 2 * vmax * Math.max(0, dist - 0.02 * Sz))) : 0;
     W.v += Math.sign(target - W.v) * Math.min(Math.abs(target - W.v), vmax * 3 * dt);
     const hy = keep ? mvYaw : g.rotation.y; const hd = [Math.sin(hy), Math.cos(hy)]; const mv = [hd[0] * W.v * dt, hd[1] * W.v * dt];
     if (c.mo.grounded) { if (c.loco.state === 'ground' || c.loco.state === 'land') c.want = { x: g.position.x + mv[0], z: g.position.z + mv[1] }; }
-    else { /* hovering / flying walkers: the same body kept out of walls */ let x = g.position.x + mv[0], z = g.position.z + mv[1]; const md = Math.hypot(mv[0], mv[1]); if (md > 1e-6 && LOCO_ENV.probe) { const L = c.loco, R = Math.max(0.06, (L && L.bodyR) || 0.2), H = Math.max(0.2, (L && L.H) || 0.6), dir = [mv[0] / md, mv[1] / md]; for (const hf of [0.2, 0.55, 0.9]) { const hit = LOCO_ENV.probe([g.position.x, g.position.y + H * hf, g.position.z], dir, md + R); if (!hit || Math.abs(hit.n[1]) > 0.6) continue; const l = Math.hypot(hit.n[0], hit.n[2]) || 1, nx = hit.n[0] / l, nz = hit.n[2] / l; const dd = (x - hit.p[0]) * nx + (z - hit.p[2]) * nz; if (dd < R) { x += nx * (R - dd); z += nz * (R - dd); } } } g.position.x = x; g.position.z = z; }
+    else { /* hovering / flying walkers: the same body kept out of walls */ let x = g.position.x + mv[0], z = g.position.z + mv[1]; const md = Math.hypot(mv[0], mv[1]); if (md > 1e-6 && LOCO_ENV.probe) { const L = c.loco, R = Math.max(0.06 * Sz, (L && L.bodyR) || 0.2), H = Math.max(0.2 * Sz, (L && L.H) || 0.6), dir = [mv[0] / md, mv[1] / md]; for (const hf of [0.2, 0.55, 0.9]) { const hit = LOCO_ENV.probe([g.position.x, g.position.y + H * hf, g.position.z], dir, md + R); if (!hit || Math.abs(hit.n[1]) > 0.6) continue; const l = Math.hypot(hit.n[0], hit.n[2]) || 1, nx = hit.n[0] / l, nz = hit.n[2] / l; const dd = (x - hit.p[0]) * nx + (z - hit.p[2]) * nz; if (dd < R) { x += nx * (R - dd); z += nz * (R - dd); } } } g.position.x = x; g.position.z = z; }
     W.stuck = (W.stuck || 0) + (c.loco.state === 'ground' && W.v > vmax * 0.5 && c.out && c.out.gait && c.out.gait.speed < vmax * 0.05 ? dt : -dt); W.stuck = Math.max(0, W.stuck);
     if (W.stuck > 1.2 && W.pts.length) { if (NAV.on && W.goals && !S_BAKING() && (W.replans = (W.replans || 0) + 1) <= 2) replan(c); else W.pts.shift(); W.stuck = 0; }
     if (!c.walk && navLine.userData.c === c) navLine.visible = false;

@@ -42,6 +42,7 @@
         var m = ev.data || {};
         if (m.type === 'progress') { progress[m.file] = { loaded: m.loaded, total: m.total }; emit(); }
         else if (m.type === 'ready') { /* the speed test runs while the page is still busy loading (world, Caine's model), so a slow result is NOT a reason to give up the natural voice for the whole visit: only a device that is hopelessly slow (over 4x real time) falls back */ if (m.rtf && m.rtf > 12) { /* only a device that truly cannot run the model (12x slower than speech) falls back. The start-up speed test runs while the page is at its busiest (world, characters, mouths and rig checks all loading), so a slow reading there is the page, not the device: it used to switch the natural voices off for the whole visit */ state = 'failed'; lastErr = 'device too slow for natural voices (x' + m.rtf.toFixed(2) + ' real time)'; console.info('[neural voice] ' + lastErr + '; using fallback voices'); try { worker.terminate(); } catch (e) { /* ok */ } } else { if (m.rtf > 1.3) console.info('[neural voice] slow start (x' + m.rtf.toFixed(2) + ' real time, the page was busy): keeping the natural voices'); state = 'ready'; } emit(); }
+        else if (m.type === 'start') { var ps = pending.get(m.id); if (ps && ps.arm) ps.arm(); }
         else if (m.type === 'log') { console.info('[neural voice]', m.text); }
         else if (m.type === 'audio') { var p = pending.get(m.id); if (p) { pending.delete(m.id); var secs = m.pcm.length / (m.sr || 24000), took = (performance.now() - Math.max(p.t, busyUntil)) / 1000; slow = secs > 0.4 && took > secs * 2.2 ? slow + 1 : Math.max(0, slow - 1); if (slow >= 3) { slow = 0; console.info('[neural voice] a few lines were slow (the page was busy): keeping the natural voices'); } /* never switched off for the visit because of a busy moment */ p.res({ pcm: m.pcm, sr: m.sr, f0: m.f0 || 0, outF0: m.outF0 || 0, starts: m.starts || null, failed: !!m.failed }); } busyUntil = performance.now(); }
         else if (m.type === 'error') {
@@ -73,7 +74,11 @@
       var now = performance.now(); if (!pending.size) busyUntil = now; var res0 = res; res = function (r) { try { if (cv && cv.targetHz && !cv.baseF0 && r && r.f0 > 40) { cv.baseF0 = r.f0; try { var bf = JSON.parse(localStorage.getItem('nv_basef0') || '{}'); bf[voice] = r.f0; localStorage.setItem('nv_basef0', JSON.stringify(bf)); } catch (e) { /* ok */ } } else if (cv && cv.targetHz && cv.baseF0 && !cv.calibrating && r && r.outF0 > 40) cv.corr = Math.max(0.6, Math.min(1.7, (cv.corr || 1) * Math.pow(cv.targetHz / r.outF0, 0.6))); /* closed loop: each spoken line's real pitch nudges the next ones onto the design */ } catch (e) { /* ok */ } res0(r); }; pending.set(id, { res: res, rej: rej, t: now });
       worker.postMessage({ type: 'gen', id: id, text: text, voice: voice, speed: Math.max(0.5, Math.min(2, speed || 1)), shape: mum ? null : (shape || null), device: device,
         mix: cv ? cv.mix || null : null, seed: cv ? cv.seed : 0, vary: cv ? cv.vary : 0, fx: cv ? cv.fx || null : null, lang: cv ? cv.lang || null : null, mode: mum ? 'mumble' : null, mumble: mum ? cv.mumble : null });
-      setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000);
+      /* WAITING and MAKING are timed separately: with several characters talking, lines queue up behind each other, and a 45 s clock
+         that started at queueing timed out lines that had not even begun (after a while every line fell back). A line gets 45 s once the
+         model STARTS it; one that waited over 90 s in the queue is no longer timely and is skipped (the worker never makes it) */
+      var ent = pending.get(id); var qT = setTimeout(function () { if (pending.has(id) && !ent.started) { pending.delete(id); try { worker.postMessage({ type: 'cancel', id: id }); } catch (e) { /* ok */ } rej(new Error('neural voice timeout (waited too long in the queue)')); } }, 90000);
+      if (ent) ent.arm = function () { ent.started = true; clearTimeout(qT); setTimeout(function () { if (pending.has(id)) { pending.delete(id); rej(new Error('neural voice timeout')); } }, 45000); };
     });
   }
 
