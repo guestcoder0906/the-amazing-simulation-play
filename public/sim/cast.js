@@ -3677,6 +3677,7 @@ function hingeSplit(ch, spec) { try { if (!spec || !Array.isArray(spec.parts)) r
   const main = { ...spec, parts: spec.parts.filter((q) => !H.has(q.id)), carve: (spec.carve || []).filter((c) => !c.parts || has(mainIds, c.parts)) };
   const hinge = { ...spec, parts: spec.parts.filter((q) => H.has(q.id)).map((q) => (H.has(q.parent) ? q : { ...q, parent: undefined, join: undefined })), carve: (spec.carve || []).filter((c) => c.parts && has(H, c.parts)), tpose: [], rigid: [], allow: [], conform: undefined };
   return { main, hinge, ids: [...H] }; } catch (e) { return null; } }
+function cloneMeshData(m) { const o = {}; for (const k in m) { const v = m[k]; o[k] = ArrayBuffer.isView(v) ? v.slice() : Array.isArray(v) ? v.slice() : v; } return o; }
 function mergeMeshes(a, b) { const nA = a.P.length / 3; const cat = (x, y, T) => { if (!x || !y) return x || y; const o = new T(x.length + y.length); o.set(x); o.set(y, x.length); return o; }; const I = new Uint32Array(a.I.length + b.I.length); I.set(a.I); for (let i = 0; i < b.I.length; i++) I[a.I.length + i] = b.I[i] + nA;
   return { ...a, P: cat(a.P, b.P, Float32Array), N: cat(a.N, b.N, Float32Array), UV: cat(a.UV, b.UV, Float32Array), C: cat(a.C, b.C, Float32Array), SI: cat(a.SI, b.SI, Uint16Array), SW: cat(a.SW, b.SW, Float32Array), I }; }
 /* the hinge corner: only right at the hinge does the jaw piece's skin share its weight with the head (like the cheek at the back of a real
@@ -3735,9 +3736,11 @@ RPC.build = (id) => {
     try {
       const spec = ch.sculpt(ch); let mesh = null; const D = RPC.SCULPT_DATA && RPC.SCULPT_DATA[id];
       if (D && D.bytes && !RPC.SCULPT_LIVE) { const sig = RPC.sculpt.signature(ch, spec); if (D.head.sig === sig || D.trust) mesh = RPC.organic.unpack(D.head, D.bytes); /* trust: shipped data made from this exact, unchanged builder (its fingerprint came from an older engine) */ else console.info('[sculpt] saved body data for', id, 'is from an older builder: it is rebuilt fresh (a little slower to load, same result)'); }
+      let ck = null; if (!mesh) { try { ck = (RPC.SCULPT_LIVE ? 'L:' : 'D:') + (ch._aiMade ? 'ai:' : '') + [spec.voxel, spec.targetTris, spec.smoothPasses, spec.surface].join(',') + ':' + RPC.sculpt.signature(ch, spec); const hit = RPC._meshC && RPC._meshC.get(ck); if (hit) { mesh = cloneMeshData(hit.mesh); ch.sculptStats = hit.stats; if (hit.hinge) ch.hingeParts = hit.hinge.slice(); if (hit.sep) ch.separatePieces = hit.sep.map((g) => g.slice()); } } catch (e) { ck = null; } } /* a copy of a character already sculpted in this visit (same builder, same body): its finished mesh is reused */
       if (!mesh) { const so = RPC.SCULPT_LIVE ? {} : { voxel: Math.max(spec.voxel, 0.0042), targetTris: Math.min(spec.targetTris, 26000) }; let done = false; /* AI-made characters: separate hinged jaws and, where they would fuse, separate arms (the shipped cast keeps its own skin exactly) */
         if (ch._aiMade) { try { const out = aiSculpt(ch, spec, so); mesh = out.mesh; ch.sculptStats = out.stats; done = true; } catch (e) { console.warn('[sculpt] separate pieces failed, using one skin', id, e); } }
-        if (!done) { const r = RPC.sculpt.build(ch, spec, so); mesh = r.mesh; ch.sculptStats = r.stats; } }
+        if (!done) { const r = RPC.sculpt.build(ch, spec, so); mesh = r.mesh; ch.sculptStats = r.stats; }
+        if (ck) { try { RPC._meshC = RPC._meshC || new Map(); RPC._meshC.set(ck, { mesh: cloneMeshData(mesh), stats: ch.sculptStats, hinge: ch.hingeParts ? ch.hingeParts.slice() : null, sep: ch.separatePieces ? ch.separatePieces.map((g) => g.slice()) : null }); while (RPC._meshC.size > 6) RPC._meshC.delete(RPC._meshC.keys().next().value); } catch (e) { /* ok */ } } }
       RPC.sculpt.apply(ch, spec, mesh); ch.sculptSpec = spec;
       // the pose the limbs were sculpted and weight-painted in (arms/flippers/wings out, legs apart), listed right after the rest pose
       if (spec.tpose && spec.tpose.length && ch.poses) { const P = {}; const tp = { rot: Object.fromEntries(spec.tpose.map((g) => [g.bones[0], [0, 0, g.angle]])) };
