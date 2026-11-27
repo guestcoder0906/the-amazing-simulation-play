@@ -231,17 +231,20 @@ function singPhrase(x0, sr, sp) {
     if (subs) { const tot = subs.reduce((a, q) => a + q.dur, 0) || 1, pos = (into / len) * tot; let acc = 0; while (j < subs.length - 1 && acc + subs[j].dur <= pos) { acc += subs[j].dur; j++; } hz = subs[j].hz; subInto = ((pos - acc) / tot) * len; }
     const prevLast = (q) => (Array.isArray(q.sub) && q.sub.length ? q.sub[q.sub.length - 1].hz : q.hz);
     const gIn = j > 0 ? Math.min(0.06 * sr, len * 0.2) : gl;
-    if (subInto < gIn) { const a = subInto / gIn, e = a * a * (3 - 2 * a); const from = j > 0 ? subs[j - 1].hz : sk > 0 ? prevLast(sp.syl[sk - 1]) : hz * Math.pow(2, -(opera ? 25 : sad ? 45 : rock ? 60 : 35) / 1200); hz = from * Math.pow(hz / from, e); }
-    if (s.vib) { const held = Math.max(0, Math.min(1, (into / len - 0.3) / 0.45)), tt = ts / sr; hz *= Math.pow(2, (held * (sp.vibDepth || 20) * (1 + 0.2 * Math.sin(tt * 2.3 + sk)) * Math.sin(2 * Math.PI * (sp.vibRate || 5.2) * (1 + 0.05 * Math.sin(tt * 1.7)) * tt)) / 1200); }
+    const from0 = j > 0 ? subs[j - 1].hz : sk > 0 ? prevLast(sp.syl[sk - 1]) : hz * Math.pow(2, -(opera ? 25 : sad ? 45 : rock ? 60 : 35) / 1200); const iv = 1200 * Math.log2(hz / from0), dir = Math.sign(iv);
+    if (subInto < gIn) { const a = subInto / gIn, e = a * a * (3 - 2 * a); hz = from0 * Math.pow(hz / from0, e); }
+    else if (Math.abs(iv) > 40) { const tA = (subInto - gIn) / sr, ov = dir * Math.min(45, Math.abs(iv) * 0.18) * Math.exp(-tA / 0.055) * Math.sin(Math.min(Math.PI, (tA / 0.13) * Math.PI)); hz *= Math.pow(2, ov / 1200); } /* overshoot, then settle */
+    { const nxt = j < (subs ? subs.length - 1 : 0) ? subs[j + 1].hz : sk + 1 < K ? sp.syl[sk + 1].hz : 0; const left = (len - into) / sr; if (nxt && left < 0.07 && !(subs && j < subs.length - 1 && false)) { const ivn = 1200 * Math.log2(nxt / hz); if (Math.abs(ivn) > 60) hz *= Math.pow(2, (-Math.sign(ivn) * 14 * (1 - left / 0.07)) / 1200); } } /* preparation: a small dip the other way just before a step */
+    if (s.vib) { const held = Math.max(0, Math.min(1, (into / sr - 0.25) / 0.35)), tt = ts / sr; /* vibrato starts ~0.25 s into the note, full by 0.6 s */ hz *= Math.pow(2, (held * (sp.vibDepth || 20) * (1 + 0.2 * Math.sin(tt * 2.3 + sk)) * Math.sin(2 * Math.PI * (sp.vibRate || 5.2) * (1 + 0.05 * Math.sin(tt * 1.7)) * tt)) / 1200); }
     if (sad && sk === K - 1 && into > len * 0.8) hz *= Math.pow(2, (-35 * ((into / len - 0.8) / 0.2)) / 1200);
     // keep a little of the spoken melody inside each note: the natural rise and fall of the words makes it sound sung by a person
-    const of = f[Math.min(nF - 1, Math.round(A(ts) / hop))]; if (of > 0 && med > 0) hz *= Math.pow(Math.max(0.85, Math.min(1.18, of / med)), 0.26);
+    const of = f[Math.min(nF - 1, Math.round(A(ts) / hop))]; if (of > 0 && med > 0) hz *= Math.pow(Math.max(0.85, Math.min(1.18, of / med)), into / sr < 0.15 ? 0.2 : 0.08); /* a touch of the word's own melody at the start, then the note itself (in tune) */
     hz *= Math.pow(2, drift / 1200);
     hzS = hzS ? hzS + (hz - hzS) * 0.3 : hz; return hzS; // slew limit: the sung pitch moves smoothly, never in a sudden jump (crack)
   };
   const y = psolaOLA(x, sr, marks, L, A, (ts, pa) => { driftV += (rnd() - 0.5) * 0.9 - drift * 0.02; driftV *= 0.94; drift = Math.max(-11, Math.min(11, drift + driftV)); return targetHz(ts) / (sr / pa); }, rnd, true);
   // phrasing: each held syllable swells gently; the line releases naturally at its end
-  for (let k = 0; k < K; k++) { const a0 = Math.round(segO[k]), a1 = Math.round(segO[k + 1]), len = Math.max(1, a1 - a0); for (let i = a0; i < a1; i++) { const a = (i - a0) / len; let g = 1; if (sp.syl[k].vib) g *= 0.9 + 0.1 * Math.min(1, a / 0.35); if (k === K - 1 && a > 0.8) g *= 1 - ((a - 0.8) / 0.2) * 0.55; y[i] *= g; } }
+  for (let k = 0; k < K; k++) { const a0 = Math.round(segO[k]), a1 = Math.round(segO[k + 1]), len = Math.max(1, a1 - a0); for (let i = a0; i < a1; i++) { const a = (i - a0) / len; let g = 1; if (sp.syl[k].vib) { const tIn = (i - a0) / sr, hv = Math.max(0, Math.min(1, (tIn - 0.25) / 0.35)); g *= (0.9 + 0.1 * Math.min(1, a / 0.35)) * (1 + 0.06 * hv * Math.sin(2 * Math.PI * (sp.vibRate || 5.2) * (i / sr))); } if (k === K - 1 && a > 0.8) g *= 1 - ((a - 0.8) / 0.2) * 0.55; y[i] *= g; } }
   let nb = 0; const br = sad ? 0.05 : 0.03; for (let i = 0; i < L; i++) { nb = 0.96 * nb + 0.04 * (rnd() * 2 - 1); y[i] += nb * Math.abs(y[i]) * br * 2.8; }
   const fd = Math.min(L >> 2, Math.round(sr * 0.012)); for (let i = 0; i < fd; i++) { const a = i / fd; y[i] *= a; y[L - 1 - i] *= a; }
   return { pcm: y, f0: med, starts: segO.slice(0, K).map((v) => v / sr) };
