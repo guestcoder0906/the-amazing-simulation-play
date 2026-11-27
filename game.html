@@ -709,7 +709,7 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     var tools = (opt.tools || []).map(function (t) { return { name: t.name, description: String(t.description || '').slice(0, 4000), input_schema: t.inputSchema || t.input_schema || { type: 'object', properties: {} } }; });
     var byName = {}; (opt.tools || []).forEach(function (t) { byName[t.name] = t; });
     var lastUser = ''; for (var i = msgs.length - 1; i >= 0 && !lastUser; i--) if (msgs[i].role === 'user') lastUser = (msgs[i].content || []).filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join(' ');
-    var web = opt.use_web_search != null ? !!opt.use_web_search : WEB_RX.test(String(lastUser).slice(-2000));
+    var web = !!opt.use_web_search; /* the web is a tool the AI calls when IT decides it needs it (web), never switched on by words in the request */ void WEB_RX;
     var text = '', model = PROVIDER === 'claude' ? pickModel(opt.model, tools) : (opt.model || 'local');
     for (var turn = 0; turn < 40; turn++) {
       if (opt.signal && opt.signal.aborted) throw err('cancelled', 'cancelled', text);
@@ -842,6 +842,22 @@ window.addEventListener('error',function(e){if(done||!e||!e.message||/ResizeObse
     } catch (e) { EARS.busy = false; }
   }, 1000);
   window.localAI.worldLevel = worldLevel;
+  /* THE WEB, for the AI's own research: one Claude call with web search and web fetch (it searches, reads the pages it needs, and answers
+     with the facts, the links it used and picture links), and a fetcher for one public picture so the game can show it to the AI.
+     Not inside the claude.ai artifact (its Claude has no web tools). */
+  window.localAI.canWeb = function () { return !window.__hostClaude; };
+  window.localAI.web = async function (question, opt) { opt = opt || {}; if (window.__hostClaude) return null;
+    var msgs = [{ role: 'user', content: [{ type: 'text', text: 'Research this on the web for a live 3D game (search, and open the pages you need): ' + String(question).slice(0, 1500) + '\n\nAnswer with the facts the game needs, concrete and exact (for a song: its melody as notes in scientific pitch notation, one per syllable, with beats, plus the lyrics; for what something or someone looks like: shape, colours and where they go, materials, distinctive details; for a how-to: the steps). Keep it under 350 words. Then the sources as lines "SOURCE: <title> <url>" and, when pictures would help, up to 4 direct picture links (ending in .png .jpg .jpeg .webp or .gif) as lines "IMAGE: <url>".' }] }];
+    var tools = [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }, { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 4 }];
+    var text = '', sources = [], seen = {};
+    for (var turn = 0; turn < 4; turn++) {
+      var res = await callClaude({ model: OPUS, max_tokens: 6000, messages: msgs, tools: tools, output_config: { effort: 'low' } }, opt.signal, 'web');
+      for (var c of res.content || []) { if (c.type === 'text' && c.text) text += c.text; if (c.type === 'web_search_tool_result' && Array.isArray(c.content)) for (var r of c.content) if (r && r.url && !seen[r.url]) { seen[r.url] = 1; sources.push({ title: String(r.title || '').slice(0, 120), url: r.url }); } }
+      if (res.stop_reason !== 'pause_turn') break; msgs.push({ role: 'assistant', content: res.content }); }
+    var imgs = []; String(text).replace(/IMAGE:\s*(https:\/\/\S+)/gi, function (m, u) { imgs.push(u.replace(/[)>\].,]+$/, '')); return m; });
+    String(text).replace(/SOURCE:\s*(.*?)\s*(https:\/\/\S+)/gi, function (m, t, u) { u = u.replace(/[)>\].,]+$/, ''); if (!seen[u]) { seen[u] = 1; sources.push({ title: t.slice(0, 120), url: u }); } return m; });
+    return { answer: String(text).replace(/^(IMAGE|SOURCE):.*$/gim, '').trim().slice(0, 4000), sources: sources.slice(0, 12), images: imgs.slice(0, 6) }; };
+  window.localAI.fetchImage = async function (url) { if (window.__hostClaude) return null; var r = await fetch('/api/fetch-image', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: String(url) }) }); var j = null; try { j = await r.json(); } catch (e) { j = null; } if (!r.ok || !j || !j.data) throw new Error((j && j.error) || ('could not fetch that picture (' + r.status + ')')); var bin = atob(j.data), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return new Blob([u8], { type: j.media_type || 'image/jpeg' }); };
   window.localAI.worldStream = function () { var t = null; TAPS.forEach(function (x, ctx) { if (!t && ctx.state === 'running') t = x; }); return t ? t.out.stream : null; };
   window.localAI.canWatch = function () { return !GEMINI_OFF && PROVIDER !== 'local' && !(window.SIM_LOCAL && !GEMINI_KEY) && Date.now() >= (GEMINI_COOLS[GEMINI] || 0) && !!window.MediaRecorder; };
   window.localAI.watch = async function (blob, prompt) { if (!window.localAI.canWatch() || !blob || !blob.size) return null;
